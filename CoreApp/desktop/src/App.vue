@@ -1,9 +1,14 @@
 <template>
   <div  class="desktopTop">
-        <h1>Overwolf Sample App</h1>
-        <p>
-          Sample app with VUE
-        </p>
+    <header>
+      <ul>
+        <li>Home</li>
+        <li>Stats</li>
+        <li>Previous games
+      </ul>
+    </header>
+        <h1>League Companion Name</h1>
+        <p>O</p>
         <div id="version"></div>
     </div>
 </template>
