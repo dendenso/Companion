@@ -55,8 +55,8 @@
         "transparent": true,
         "resizable": false,
         "size": {
-          "width": 600,
-          "height": 400
+          "width": 1000,
+          "height": 500
         },
         "desktop_only": true
       },
