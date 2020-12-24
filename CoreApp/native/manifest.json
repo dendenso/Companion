@@ -2,8 +2,8 @@
   "manifest_version": 1,
   "type": "WebApp",
   "meta": {
-    "name": "Sample App VUE JS",
-    "version": "1.1.0",
+    "name": "LoL Companion App",
+    "version": "0.1",
     "minimum-overwolf-version": "0.120.0",
     "author": "Overwolf",
     "icon": "IconMouseOver.png",
@@ -31,7 +31,7 @@
         "event_data": {
           "game_ids": [5426]
         },
-        "start_minimized": true
+        "start_minimized": false
       }
     ],
     "hotkeys": {
@@ -53,18 +53,10 @@
         "file": "windows/desktop/index.html",
         "native_window": true,
         "transparent": true,
-        "resizable": true,
+        "resizable": false,
         "size": {
-          "width": 1212,
-          "height": 699
-        },
-        "min_size": {
-          "width": 1212,
-          "height": 699
-        },
-        "max_size": {
-          "width": 1212,
-          "height": 699
+          "width": 600,
+          "height": 400
         },
         "desktop_only": true
       },
@@ -86,7 +78,7 @@
           "width": 1212,
           "height": 699
         }
-      },
+      }
     },
     "protocol_override_domains": { "googlesyndication": "http" },
     "block_top_window_navigation": true,

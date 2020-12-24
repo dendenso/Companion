@@ -4,7 +4,7 @@
       <ul>
         <li>Home</li>
         <li>Stats</li>
-        <li>Previous games
+        <li>Previous games</li>
       </ul>
     </header>
         <h1>League Companion Name</h1>
