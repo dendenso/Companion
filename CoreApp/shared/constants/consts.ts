@@ -1,4 +1,4 @@
-const fortniteClassId = 21216;
+const leagueClassId = 5426;
 
 const interestingFeatures = [
   'counters',
@@ -28,7 +28,7 @@ const hotkeys = {
 };
 
 export {
-  fortniteClassId,
+  leagueClassId,
   interestingFeatures,
   windowNames,
   hotkeys

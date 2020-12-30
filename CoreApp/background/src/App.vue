@@ -3,7 +3,7 @@
 
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
-    import { windowNames, fortniteClassId } from "../../shared/constants/consts";
+    import { windowNames, leagueClassId } from "../../shared/constants/consts";
     import { OWGames } from '../../shared/libs/ow-games';
     import { OWGameListener } from '../../shared/libs/ow-game-listener';
     import { OWWindow } from '../../shared/libs/ow-window';
@@ -37,12 +37,12 @@
                onGameEnded: this.toggleWindows.bind(this)
            });
             this._gameListener.start();
-            const currWindow = await this.isFortniteRunning() ? windowNames.inGame : windowNames.desktop;
+            const currWindow = await this.isLeagueRunning() ? windowNames.inGame : windowNames.desktop;
             this._windows[currWindow].restore();
         }
 
         private toggleWindows(info) {
-            if (!info || !this.isGameFortnite(info)) {
+            if (!info || !this.isGameLeague(info)) {
                 return;
             }
 
@@ -55,15 +55,15 @@
             }
         }
 
-        private async isFortniteRunning(): Promise<boolean> {
+        private async isLeagueRunning(): Promise<boolean> {
             const info = await OWGames.getRunningGameInfo();
 
-            return info && info.isRunning && this.isGameFortnite(info);
+            return info && info.isRunning && this.isGameLeague(info);
         }
 
         // Identify whether the RunningGameInfo object we have references Fortnite
-        private isGameFortnite(info: RunningGameInfo) {
-            return info.classId === fortniteClassId;
+        private isGameLeague(info: RunningGameInfo) {
+            return info.classId === leagueClassId;
         }
     }
 </script>
