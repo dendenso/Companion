@@ -1,0 +1,51 @@
+@import url("https://fonts.googleapis.com/css2?family=Asul&family=Cinzel+Decorative&family=Cinzel:wght@500&family=Marcellus+SC&family=Raleway&display=swap");
+
+body {
+  background: #24639f;
+  background: linear-gradient(180deg, #2c5c54 0%, #24639f 100%);
+  color: #fefefe;
+  margin: 0px;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  min-height: 100vh;
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+  overflow: hidden;
+}
+
+/* Add a black background color to the top navigation */
+.topnav {
+  margin: auto;
+  background-color: rgba(0, 0, 0, 0.3);  display: inline-flex;
+  width: 100%;
+  justify-content: space-evenly;
+  font-size: 1.5em;
+}
+
+/* Style the links inside the navigation bar */
+.topnav a {
+  padding: 5px 5px;
+
+  color: #f2f2f2;
+  text-align: center;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.topnav a.active {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* Style App Name */
+h1{
+  font-family: 'Marcellus SC', serif;
+  margin: 20px ;
+  font-size: 2.5em;
+}
