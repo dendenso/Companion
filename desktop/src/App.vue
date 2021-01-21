@@ -1,15 +1,15 @@
 <template>
   <div>
     <ul class="topnav">
-      <a>Home</a>
-      <a>Stats</a>
-      <a>Game Summary</a>
+      <button @click="changeTab('Home')">Home</button>
+      <button @click="changeTab('Stats')">Stats</button>
+      <button @click="changeTab('Tournaments')">Tournament</button>
     </ul>
-     <!--<p>Logo Here</p>
+    <!--<p>Logo Here</p>
     <h1>(League Companion)</h1>
     <h2>Launch League of Legends to Begin!</h2>
     TODO:We #7 Need an App logo to display here and in the nav bar -->
-    <component v-bind:is="selectedTab"/>
+    <component v-bind:is="tabName" />
   </div>
 </template>
 
@@ -19,15 +19,30 @@ import { Component, Vue } from "vue-property-decorator";
 //the vue version cannot see local paths
 // @ts-ignore
 import Stats from "@/components/Stats";
-
-
+// @ts-ignore
+import Home from "@/components/Home";
+// @ts-ignore
+import Tournaments from "@/components/Tournaments";
 
 @Component({
   components: {
-    Stats
-  }
-})
+    Stats,
+    Home,
+    Tournaments,
+  },
+})     
 export default class App extends Vue {
+  tabsName = "Home";
+
+  get tabName() {
+    return this.tabsName;
+  }
+
+  changeTab(name){
+    console.log("Setting Value: ", name)
+    this.tabsName = name;
+  }
+
   _backgroundWindow: OWWindow;
   currWindow: OWWindow;
   _modal: HTMLElement;

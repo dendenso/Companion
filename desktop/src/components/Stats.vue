@@ -3,7 +3,7 @@
         <!-- Here we would display data we recieved from the launcher 
         such as username, level, rank, icon-->
         Stats for champion<br>
-        TESTING
+        TEST
         
     </div>
 </template>
@@ -15,7 +15,7 @@ import { Component, Vue } from "vue-property-decorator";
 export default class Stats extends Vue {
 
     mounted() {
-    console.log('mounted')
+    console.log('mounted Stats')
     }
 
     created(){
