@@ -5,18 +5,28 @@
       <a>Stats</a>
       <a>Game Summary</a>
     </ul>
-    <p>Logo Here</p>
+     <!--<p>Logo Here</p>
     <h1>(League Companion)</h1>
     <h2>Launch League of Legends to Begin!</h2>
-    <!-- TODO:We #7 Need an App logo to display here and in the nav bar -->
+    TODO:We #7 Need an App logo to display here and in the nav bar -->
+    <component v-bind:is="selectedTab"/>
   </div>
 </template>
 
 <script lang="ts">
 import { OWWindow } from "../../shared/libs/ow-window";
 import { Component, Vue } from "vue-property-decorator";
+//the vue version cannot see local paths
+// @ts-ignore
+import Stats from "@/components/Stats";
 
-@Component
+
+
+@Component({
+  components: {
+    Stats
+  }
+})
 export default class App extends Vue {
   _backgroundWindow: OWWindow;
   currWindow: OWWindow;
@@ -27,6 +37,7 @@ export default class App extends Vue {
   _minimizeButton: HTMLElement;
   _header: HTMLElement;
   _version: HTMLElement;
+
   created() {
     // Background window:
     this._backgroundWindow = new OWWindow("background");
@@ -42,6 +53,7 @@ export default class App extends Vue {
     )[0] as HTMLElement;
     this._version = document.getElementById("version");
   }
+
   mounted() {
     // Listen to X button click
     this._closeButton.addEventListener("click", this._showExitMinimizeModal);

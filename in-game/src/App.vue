@@ -3,7 +3,7 @@
             <div id="events" class="logColumn">
                 <h1>Game Events</h1>
                 <div id="eventsLog" class="dataText">
-                    <p v-for="event in events">
+                    <p v-for="event in events" :key="event">
                         {{event}}
                     </p>
                 </div>
@@ -14,7 +14,7 @@
             <div id="infoUpdates" class="logColumn">
                 <h1>Info Updates</h1>
                 <div id="infoLog" class="dataText">
-                    <p v-for="info in infos">
+                    <p v-for="info in infos" :key="info">
                         {{info}}
                     </p>
                 </div>
@@ -48,6 +48,9 @@
     import {OWWindow} from "../../shared/libs/ow-window";
     // @ts-ignore
     let WindowState = overwolf.windows.WindowState;
+
+
+    
 
     @Component
     export default class App extends Vue{
