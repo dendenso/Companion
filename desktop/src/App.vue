@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ul class="topnav">
+    <ul class="nav">
       <button @click="changeTab('Home')">Home</button>
       <button @click="changeTab('Stats')">Stats</button>
       <button @click="changeTab('Tournaments')">Tournament</button>

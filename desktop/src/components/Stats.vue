@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="home-container">
         <!-- Here we would display data we recieved from the launcher 
         such as username, level, rank, icon-->
         Stats for champion<br>

@@ -31,7 +31,7 @@
         // When running the app, start listening to games' status and decide which window should
         // be launched first, based on whether Fortnite is currently running
        async created() {
-           // When a Fortnite game is started or is ended, toggle the app's windows
+           // When a League game is started or is ended, toggle the app's windows
            this._gameListener = new OWGameListener({
                onGameStarted: this.toggleWindows.bind(this),
                onGameEnded: this.toggleWindows.bind(this)

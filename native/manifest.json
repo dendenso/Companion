@@ -5,12 +5,12 @@
     "name": "LoL Companion App",
     "version": "0.1",
     "minimum-overwolf-version": "0.120.0",
-    "author": "Overwolf",
+    "author": "Comp 490",
     "icon": "IconMouseOver.png",
     "icon_gray": "IconMouseNormal.png",
     "launcher_icon": "desktop-icon.ico",
     "window_icon": "TaskbarIcon.png",
-    "description": "Sample app for new developers"
+    "description": "Companion Application for League of Legends"
   },
   "permissions": [
     "Hotkeys",
@@ -18,7 +18,9 @@
     "Streaming",
     "Profile",
     "GameInfo",
-    "DesktopStreaming"
+    "DesktopStreaming",
+    "FileSystem",
+    "VideoCaptureSettings"
   ],
   "data": {
     "game_targeting": {
@@ -29,7 +31,7 @@
       {
         "event": "GameLaunch",
         "event_data": {
-          "game_ids": [5426]
+          "game_ids": [10902]
         },
         "start_minimized": false
       }
@@ -55,8 +57,8 @@
         "transparent": true,
         "resizable": false,
         "size": {
-          "width": 1000,
-          "height": 500
+          "width": 500,
+          "height": 600
         },
         "desktop_only": true
       },
@@ -67,16 +69,8 @@
         "transparent": true,
         "resizable": true,
         "size": {
-          "width": 1212,
-          "height": 699
-        },
-        "min_size": {
-          "width": 1212,
-          "height": 699
-        },
-        "max_size": {
-          "width": 1212,
-          "height": 699
+          "width": 250,
+          "height": 340
         }
       }
     },
