@@ -4,7 +4,7 @@
   "meta": {
     "name": "LoL Companion App",
     "version": "0.1",
-    "minimum-overwolf-version": "0.120.0",
+    "minimum-overwolf-version": "0.120.1.0",
     "author": "Comp 490",
     "icon": "IconMouseOver.png",
     "icon_gray": "IconMouseNormal.png",
@@ -43,7 +43,7 @@
         "default": "Ctrl+F"
       }
     },
-    "game_events": [5426],
+    "game_events": [10902],
     "start_window": "background",
     "windows": {
       "background": {
