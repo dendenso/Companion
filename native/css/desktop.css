@@ -80,3 +80,11 @@ hr {
   margin: 20px ;
   font-size: 2.5em;
 }
+
+.league_profile{
+  border-radius: 50%;
+  height: 80px;
+    width: 80px;
+    border: 8px solid rgb(0, 0, 0);
+    border-style: inset;
+  }

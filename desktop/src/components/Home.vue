@@ -3,9 +3,20 @@
     <h1 class="project-name">League Companion</h1>
     <hr />
     <div v-if="summonerDataAvailable">
-      <p>{{summoner_info}}</p>
+      <!-- Info that is displayed from data pullled from launcher -->
+      <p>{{summonerName}}</p>
+      <img
+        alt="Profile Icon"
+        class="league_profile"
+        :srcset="profile_icon_id_url"
+              />
     </div>
+    
     <div v-else>
+      <!-- If the launcher is not running it cant display info, so this is the placeholder-->
+      <!-- TODO #8 We need to save the information pulled from the launcher so that the program
+       knows their summoner data. Whether locally or on a database, then we can have home page
+        check to see if we've already saved summoner data -->
       <img
         alt="League Companion"
         class="logo"
@@ -25,9 +36,11 @@ import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class Home extends Vue {
-  infoAvailable = true;
-  summoner_info = "testing Summoner";
-
+  infoAvailable = false;
+  //this is the data being pulled from the launcher
+  summoner_info = null;
+  summonerName = "Test";
+  profile_icon_id_url = "";
 
   get summonerDataAvailable(){
     return this.infoAvailable;
@@ -38,6 +51,7 @@ export default class Home extends Vue {
   }
 
   created() {
+    let self = this;
     //register event listeners
     function registerEvents() {
       // general events errors
@@ -92,6 +106,18 @@ export default class Home extends Vue {
           // @ts-ignore
           overwolf.games.launchers.events.getInfo(10902, function (info) {
            console.log("setting data from: ", info )
+
+            if(info.status === "success"){
+              console.log("Summoner Info", info.res.summoner_info.display_name );
+
+              self.summoner_info = info.res.summoner_info;
+              self.summonerName = self.summoner_info.display_name;
+              self.profile_icon_id_url= "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/"+ self.summoner_info.profile_icon_id +".png"
+              console.log("Profile url = ", self.profile_icon_id_url)
+
+              self.infoAvailable = true;
+
+}
 
           });
         }
