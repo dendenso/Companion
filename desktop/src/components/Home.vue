@@ -3,15 +3,24 @@
     <h1 class="project-name">League Companion</h1>
     <hr />
     <div v-if="summonerDataAvailable">
-      <!-- Info that is displayed from data pullled from launcher -->
-      <p>{{summonerName}}</p>
+      <!-- Info that is displayed from data pullled from launcher
+       img src is being dynamically set-->
+      <div class="summoner-label">
+        <img
+          alt="Profile Icon"
+          class="league_profile"
+          :srcset="profile_icon_id_url"
+        />
+        <h1>{{ summonerName }}</h1>
+        <p>Level: {{ summonerLevel }}</p>
+      </div>
       <img
-        alt="Profile Icon"
-        class="league_profile"
-        :srcset="profile_icon_id_url"
-              />
+      :srcset="splash_art_url"
+        alt="Random Art"
+        class="bottom-art"
+      />
     </div>
-    
+
     <div v-else>
       <!-- If the launcher is not running it cant display info, so this is the placeholder-->
       <!-- TODO #8 We need to save the information pulled from the launcher so that the program
@@ -41,8 +50,25 @@ export default class Home extends Vue {
   summoner_info = null;
   summonerName = "Test";
   profile_icon_id_url = "";
+  splash_art_url = "";
+  summonerLevel = "";
 
-  get summonerDataAvailable(){
+  //This array is for the random picture on the bottom of the profile home page
+  championArray = [
+    "Teemo",
+    "Thresh",
+    "Lux",
+    "Lucian",
+    "Soraka",
+    "Sona",
+    "Aatrox",
+    "Pantheon",
+    "Samira",
+    "Malphite",
+    "Fiddlesticks"
+  ];
+
+  get summonerDataAvailable() {
     return this.infoAvailable;
   }
 
@@ -105,20 +131,24 @@ export default class Home extends Vue {
 
           // @ts-ignore
           overwolf.games.launchers.events.getInfo(10902, function (info) {
-           console.log("setting data from: ", info )
+            console.log("setting data from: ", info);
 
-            if(info.status === "success"){
-              console.log("Summoner Info", info.res.summoner_info.display_name );
+            if (info.status === "success") {
+              console.log("Summoner Info", info.res.summoner_info.display_name);
 
+              //filling in data from what the launcher recieves
               self.summoner_info = info.res.summoner_info;
               self.summonerName = self.summoner_info.display_name;
-              self.profile_icon_id_url= "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/"+ self.summoner_info.profile_icon_id +".png"
-              console.log("Profile url = ", self.profile_icon_id_url)
-
+              self.profile_icon_id_url =
+                "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/" +
+                self.summoner_info.profile_icon_id +
+                ".png";
+              console.log("Profile url = ", self.profile_icon_id_url);
+              self.summonerLevel = self.summoner_info.summoner_level;
+              //randomly chosing splash art from array
+              self.splash_art_url = "http://ddragon.leagueoflegends.com/cdn/img/champion/splash/"+ self.championArray[ Math.floor(Math.random() * self.championArray.length)]+"_0.jpg"
               self.infoAvailable = true;
-
-}
-
+            }
           });
         }
       );

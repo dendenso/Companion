@@ -1,20 +1,22 @@
-@import url("https://fonts.googleapis.com/css2?family=Asul&family=Cinzel+Decorative&family=Cinzel:wght@500&family=Marcellus+SC&family=Raleway&display=swap");
 
+/* Importing Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Asul&family=Cinzel+Decorative&family=Cinzel:wght@500&family=Marcellus+SC&family=Raleway&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Raleway', sans-serif;
+  font-family: "Raleway", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: rgb(54, 75, 91);
+  background: rgb(0, 46, 59);
   background: radial-gradient(
     circle,
-    rgb(82, 116, 141) 0%,
-    rgba(0, 35, 87, 1) 100%
+    rgb(10, 10, 10) 0%,
+    rgb(0, 49, 63) 100%
   );
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
   background-size: 500px 600px;
-}
+overflow: hidden;}
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
@@ -40,33 +42,31 @@ code {
   color: #dddcf7;
   margin: auto auto;
   background: rgb(0, 0, 0, 0.3);
-
 }
 
-.nav li:hover{
-  color:white;
+.nav li:hover {
+  color: white;
 }
 
 hr {
   width: 95%;
 }
 
-.nav button{
-  color:white;
+.nav button {
+  color: white;
   padding: 10px;
-  background-color:Transparent;
-  background-repeat:no-repeat;
+  background-color: Transparent;
+  background-repeat: no-repeat;
   border: none;
-  cursor:pointer;
+  cursor: pointer;
   overflow: hidden;
-  outline:none;
+  outline: none;
+  font-size: 1.2em;
 }
 
-.nav button:hover{
-  color: black;
-  background-color: aliceblue;
+.nav button:hover {
+  background-color: rgb(6, 119, 163);
 }
-
 
 .logo {
   display: block;
@@ -75,16 +75,34 @@ hr {
   width: 50%;
 }
 
-.project-name{
-  font-family: 'Marcellus SC', serif;
-  margin: 20px ;
-  font-size: 2.5em;
+.project-name {
+  font-family: "Marcellus SC", serif;
+  margin: 20px;
+  font-size: 3em;
 }
 
-.league_profile{
+.league_profile {
+  float:left;
   border-radius: 50%;
-  height: 80px;
-    width: 80px;
-    border: 8px solid rgb(0, 0, 0);
-    border-style: inset;
-  }
+  height: 70px;
+  width: 70px;
+  border: 8px solid rgb(6, 119, 163);
+  border-style: inset;
+
+}
+
+.summoner-label{
+  background: rgb(28, 45, 49);
+  margin: 15px;
+  padding: 10px;
+  border-radius: 25px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.summoner-label h1 {
+  font-size: 1.9em;
+}
+
+.bottom-art{
+  width: 500px; 
+}
