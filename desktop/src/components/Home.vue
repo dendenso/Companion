@@ -14,11 +14,7 @@
         <h1>{{ summonerName }}</h1>
         <p>Level: {{ summonerLevel }}</p>
       </div>
-      <img
-      :srcset="splash_art_url"
-        alt="Random Art"
-        class="bottom-art"
-      />
+      <img :srcset="splash_art_url" alt="Random Art" class="bottom-art" />
     </div>
 
     <div v-else>
@@ -41,17 +37,26 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-// @ts-ignore
+import axios from "axios";
+import {
+  RiotAPI,
+  RiotAPITypes,
+  PlatformId,
+  DDragon,
+} from "@fightmegg/riot-api";
 
 @Component
 export default class Home extends Vue {
   infoAvailable = false;
   //this is the data being pulled from the launcher
   summoner_info = null;
-  summonerName = "Test";
+  summonerName = "Doublelift";
   profile_icon_id_url = "";
   splash_art_url = "";
   summonerLevel = "";
+  // these are needed for API calls for stats
+  encypted_summoner_id = "";
+  encypted_account_id = "";
 
   //This array is for the random picture on the bottom of the profile home page
   championArray = [
@@ -65,7 +70,7 @@ export default class Home extends Vue {
     "Pantheon",
     "Samira",
     "Malphite",
-    "Fiddlesticks"
+    "Fiddlesticks",
   ];
 
   get summonerDataAvailable() {
@@ -73,15 +78,11 @@ export default class Home extends Vue {
   }
 
   mounted() {
-    console.log("mounted Home");
-  }
-
-  created() {
     let self = this;
+
     //register event listeners
     function registerEvents() {
       // general events errors
-      console.log("Registering Event Listeners");
       // @ts-ignore
       overwolf.games.events.onError.addListener(function (info) {
         console.log("Error: " + JSON.stringify(info));
@@ -105,7 +106,6 @@ export default class Home extends Vue {
     }
 
     function setFeatures() {
-      console.log("Attempting to set required feaures");
       // @ts-ignore
       overwolf.games.launchers.events.setRequiredFeatures(
         10902,
@@ -126,27 +126,30 @@ export default class Home extends Vue {
             return;
           }
 
-          console.log("Required Features Have Been Set:");
           console.log(JSON.stringify(info));
 
           // @ts-ignore
           overwolf.games.launchers.events.getInfo(10902, function (info) {
-            console.log("setting data from: ", info);
 
             if (info.status === "success") {
               console.log("Summoner Info", info.res.summoner_info.display_name);
 
               //filling in data from what the launcher recieves
               self.summoner_info = info.res.summoner_info;
-              self.summonerName = self.summoner_info.display_name;
+              //FOR TESTING PURPOSES
+              //self.summonerName = self.summoner_info.display_name;
               self.profile_icon_id_url =
                 "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/" +
                 self.summoner_info.profile_icon_id +
                 ".png";
-              console.log("Profile url = ", self.profile_icon_id_url);
               self.summonerLevel = self.summoner_info.summoner_level;
               //randomly chosing splash art from array
-              self.splash_art_url = "http://ddragon.leagueoflegends.com/cdn/img/champion/splash/"+ self.championArray[ Math.floor(Math.random() * self.championArray.length)]+"_0.jpg"
+              self.splash_art_url =
+                "http://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
+                self.championArray[
+                  Math.floor(Math.random() * self.championArray.length)
+                ] +
+                "_0.jpg";
               self.infoAvailable = true;
             }
           });
@@ -155,7 +158,6 @@ export default class Home extends Vue {
     }
 
     function launcherRunning(launcherInfo) {
-      console.log("Checking If launcher is running");
       if (!launcherInfo) {
         return false;
       }
@@ -176,14 +178,12 @@ export default class Home extends Vue {
     //create starting listeners
     // @ts-ignore
     overwolf.games.launchers.onLaunched.addListener(function () {
-      console.log("Registering onLaunched Listener");
       registerEvents();
       setTimeout(setFeatures, 1000);
       console.log("onLaunched fired");
     });
     // @ts-ignore
     overwolf.games.launchers.getRunningLaunchersInfo(function (res) {
-      console.log("Registering getRunningLaunchersInfo Listener");
       if (launcherRunning(res)) {
         registerEvents();
         setTimeout(setFeatures, 1000);
@@ -193,9 +193,61 @@ export default class Home extends Vue {
 
     // @ts-ignore
     overwolf.games.launchers.onTerminated.addListener(function (res) {
-      console.log("onTerminated fired");
       setTimeout(window.close, 1000);
     });
+  }
+
+
+  
+  created() {
+    //create variable for this
+    let self = this;
+    //create url to call for summoner data
+    let summonerInfoURL =
+      "https://cors-anywhere.herokuapp.com/https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
+      self.summonerName +
+      "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+    //ACCOUNTID >> MATCHLIST >> LAST MATCH DATA
+    console.log("SummonerName being queried: ", self.summonerName);
+
+    //Use axios to call API and get summoner info
+    //ACCOUNT ID
+    axios
+      .get(summonerInfoURL)
+      .then((summonerInfo) => {
+        //Save encrypted summoner data
+        console.log("Summoner API CALL RESPONCE: ", summonerInfo);
+
+        self.encypted_summoner_id = summonerInfo.data.id;
+        self.encypted_account_id = summonerInfo.data.accountId;
+        //MATCHLIST
+        //use axios to get a matchlist from RIOT API
+        console.log("Matchlist queried using encrypted summoner Id: ", self.encypted_account_id);
+        let matchInfoURL =
+          "https://cors-anywhere.herokuapp.com/https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
+          self.encypted_account_id +
+          "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+
+          //Nested Axios Call to recieve
+        axios
+          .get(matchInfoURL)
+          .then((matchList) => {
+            console.log("MatchList API CALL RESPONCE: ", matchList);
+
+            //tsignore removes the error for finding matches in matchlist
+            // @ts-ignore
+            console.log("MAtchlist Game ID: ", matchList.data.matches[0].gameId);
+            axios.get("https://cors-anywhere.herokuapp.com/https://na1.api.riotgames.com/lol/match/v4/matches/"+ matchList.data.matches[0].gameId +"?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9")
+            .then((lastMatch) => {
+              console.log("MatchAPI CALL RESPONSE", lastMatch);
+              })
+            .catch((e) => console.log("Error: ", e));
+
+        
+          })
+          .catch((e) => console.log("Error: ", e));
+      })
+      .catch((e) => console.log("Error: ", e));
   }
 }
 </script>
