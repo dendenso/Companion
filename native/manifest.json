@@ -89,7 +89,9 @@
         "https://discord.gg/v5cfBTq",
         "https://twitter.com/",
         "https://www.facebook.com",
-        "https://www.reddit.com"
+        "https://www.reddit.com",
+        "http://ddragon.leagueoflegends.com",
+        "https://na1.api.riotgames.com"
       ]
     },
     "force_browser": "user",

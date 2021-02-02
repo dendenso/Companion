@@ -54,9 +54,6 @@ export default class Home extends Vue {
   profile_icon_id_url = "";
   splash_art_url = "";
   summonerLevel = "";
-  // these are needed for API calls for stats
-  encypted_summoner_id = "";
-  encypted_account_id = "";
 
   //This array is for the random picture on the bottom of the profile home page
   championArray = [
@@ -72,11 +69,13 @@ export default class Home extends Vue {
     "Malphite",
     "Fiddlesticks",
   ];
-
+  
+  //getter is used by template to see if it needs to change what it displays
   get summonerDataAvailable() {
     return this.infoAvailable;
   }
 
+  //mounted is used to gain user data from the launcher
   mounted() {
     let self = this;
 
@@ -130,8 +129,8 @@ export default class Home extends Vue {
 
           // @ts-ignore
           overwolf.games.launchers.events.getInfo(10902, function (info) {
-
             if (info.status === "success") {
+              console.log(info);
               console.log("Summoner Info", info.res.summoner_info.display_name);
 
               //filling in data from what the launcher recieves
@@ -156,7 +155,8 @@ export default class Home extends Vue {
         }
       );
     }
-
+    
+    //checks if correct launcher is running
     function launcherRunning(launcherInfo) {
       if (!launcherInfo) {
         return false;
@@ -170,7 +170,7 @@ export default class Home extends Vue {
       if (Math.floor(launcherInfo.launchers[0].id / 10) != 10902) {
         return false;
       }
-
+    
       console.log("League of Legends launcher running");
       return true;
     }
@@ -197,57 +197,8 @@ export default class Home extends Vue {
     });
   }
 
-
-  
   created() {
-    //create variable for this
-    let self = this;
-    //create url to call for summoner data
-    let summonerInfoURL =
-      "https://cors-anywhere.herokuapp.com/https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
-      self.summonerName +
-      "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
-    //ACCOUNTID >> MATCHLIST >> LAST MATCH DATA
-    console.log("SummonerName being queried: ", self.summonerName);
-
-    //Use axios to call API and get summoner info
-    //ACCOUNT ID
-    axios
-      .get(summonerInfoURL)
-      .then((summonerInfo) => {
-        //Save encrypted summoner data
-        console.log("Summoner API CALL RESPONCE: ", summonerInfo);
-
-        self.encypted_summoner_id = summonerInfo.data.id;
-        self.encypted_account_id = summonerInfo.data.accountId;
-        //MATCHLIST
-        //use axios to get a matchlist from RIOT API
-        console.log("Matchlist queried using encrypted summoner Id: ", self.encypted_account_id);
-        let matchInfoURL =
-          "https://cors-anywhere.herokuapp.com/https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
-          self.encypted_account_id +
-          "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
-
-          //Nested Axios Call to recieve
-        axios
-          .get(matchInfoURL)
-          .then((matchList) => {
-            console.log("MatchList API CALL RESPONCE: ", matchList);
-
-            //tsignore removes the error for finding matches in matchlist
-            // @ts-ignore
-            console.log("MAtchlist Game ID: ", matchList.data.matches[0].gameId);
-            axios.get("https://cors-anywhere.herokuapp.com/https://na1.api.riotgames.com/lol/match/v4/matches/"+ matchList.data.matches[0].gameId +"?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9")
-            .then((lastMatch) => {
-              console.log("MatchAPI CALL RESPONSE", lastMatch);
-              })
-            .catch((e) => console.log("Error: ", e));
-
-        
-          })
-          .catch((e) => console.log("Error: ", e));
-      })
-      .catch((e) => console.log("Error: ", e));
+    //runs after mounted()
   }
 }
 </script>
