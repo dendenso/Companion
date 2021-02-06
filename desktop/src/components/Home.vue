@@ -69,7 +69,7 @@ export default class Home extends Vue {
     "Malphite",
     "Fiddlesticks",
   ];
-  
+
   //getter is used by template to see if it needs to change what it displays
   get summonerDataAvailable() {
     return this.infoAvailable;
@@ -124,15 +124,9 @@ export default class Home extends Vue {
             window.setTimeout(setFeatures, 2000);
             return;
           }
-
-          console.log(JSON.stringify(info));
-
           // @ts-ignore
           overwolf.games.launchers.events.getInfo(10902, function (info) {
             if (info.status === "success") {
-              console.log(info);
-              console.log("Summoner Info", info.res.summoner_info.display_name);
-
               //filling in data from what the launcher recieves
               self.summoner_info = info.res.summoner_info;
               self.summonerName = self.summoner_info.display_name;
@@ -154,7 +148,7 @@ export default class Home extends Vue {
         }
       );
     }
-    
+
     //checks if correct launcher is running
     function launcherRunning(launcherInfo) {
       if (!launcherInfo) {
@@ -169,7 +163,7 @@ export default class Home extends Vue {
       if (Math.floor(launcherInfo.launchers[0].id / 10) != 10902) {
         return false;
       }
-    
+
       console.log("League of Legends launcher running");
       return true;
     }

@@ -176,7 +176,7 @@ class Champion {
 
 @Component
 export default class Stats extends Vue {
-  infoAvailable = true;
+  infoAvailable = false;
   summoner_info = null;
   summonerName = "Doublelift";
   profile_icon_id_url =
@@ -315,6 +315,7 @@ export default class Stats extends Vue {
 
               //filling in data from what the launcher recieves
               self.summoner_info = info.res.summoner_info;
+
               //FOR TESTING PURPOSES
               //self.summonerName = self.summoner_info.display_name;
               //   self.profile_icon_id_url =
@@ -322,7 +323,6 @@ export default class Stats extends Vue {
               //     self.summoner_info.profile_icon_id +
               //     ".png";
               self.summonerLevel = self.summoner_info.summoner_level;
-              //randomly chosing splash art from array
 
               self.infoAvailable = true;
             }
@@ -407,14 +407,7 @@ export default class Stats extends Vue {
         await axios
           .get(matchInfoURL)
           .then(async (matchList) => {
-            console.log("MatchList API CALL RESPONCE: ", matchList);
 
-            //tsignore removes the error for finding matches in matchlist
-            // @ts-ignore
-            console.log(
-              "Matchlist Game ID: ",
-              matchList.data.matches[0].gameId
-            );
             var matchNums = 15;
             if (matchList.data.totalGames < 15) {
               matchNums = matchList.data.totalGames;
@@ -423,17 +416,14 @@ export default class Stats extends Vue {
             var deathcount = 0;
             var assistCount = 0;
 
-            //we a few arrays to count roles, queues, and champions
-            //notice the typescript syntax for arrays
+            //arrays to count roles, queues, and champions
             var roleCount: string[] = new Array();
             var queueCount: number[] = new Array();
             var champIDs: number[] = new Array();
 
-            //go through 20 matches to build stats profile.
+            //go through 15 matches to build stats profile.
             for (let imatch = 0; imatch < matchNums; imatch++) {
-              //this 1 second sleep is here because we are rate limited from riot API
-
-              //deal with data immediately availablle from matchlist
+              //collect individual match data
               //add first match data if no other matches added yet
               //adding roles
               if (roleCount.length === 0) {
@@ -497,6 +487,7 @@ export default class Stats extends Vue {
                 .then(async (mostRecentMatch) => {
                   //assigning most recent match data to display by parsing the json
 
+                  console.log(mostRecentMatch.data);
                   //setting basic game data for recent match
                   //if i === 0, then this is the most recent match data
                   if (imatch === 0) {
@@ -674,39 +665,7 @@ export default class Stats extends Vue {
                           }
                         }
                       }
-                      // if (imatch === 0) {
-                      //   // WE do not need to call this in this loop, call once with array of champions !!!!!!!!!!!!!
-                      //   //find the champion from the champion Id
-
-                      //   await axios
-                      //     .get(
-                      //       "http://ddragon.leagueoflegends.com/cdn/11.2.1/data/en_US/champion.json"
-                      //     )
-                      //     .then((championInfo) => {
-                      //       //statically using number of current champions 1/31/21 might change in the future
-
-                      //       let obj = championInfo.data.data;
-
-                      //       //this for loop took forever to figure out,
-                      //       // the json is formatted in a weird way
-                      //       for (var key in obj) {
-                      //         let champ = championInfo.data.data[key];
-
-                      //         if (
-                      //           champ.key === String(self.lastMatch.championId)
-                      //         ) {
-                      //           self.lastMatch.championName = champ.name;
-                      //           self.lastMatch.champArtURL =
-                      //             "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/champion/" +
-                      //             champ.name.split(" ").join("") +
-                      //             ".png";
-                      //         }
-                      //       }
-                      //     })
-                      //     .catch((e) => console.log("Error: ", e));
-                      // }
-
-                      console.log("Found Summoner @ index: ", i);
+                    
                       break;
                     }
                   }
@@ -732,7 +691,7 @@ export default class Stats extends Vue {
               }
             }
 
-            console.log("adding champion data");
+            
             champIDs.forEach((id) => {
               console.log(id);
               for (let i = 0; i < champions.length; i++) {
