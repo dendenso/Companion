@@ -74,7 +74,7 @@ export default class App extends Vue {
     this._closeButton.addEventListener("click", this._showExitMinimizeModal);
     // Listen to minimize click
     this._minimizeHeaderButton.addEventListener("click", () => {
-      this._backgroundWindow.minimize();
+      this.currWindow.minimize();
     });
     // Close app on exit click
     this._exitButton.addEventListener("click", () => {

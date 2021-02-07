@@ -60,7 +60,11 @@
           "width": 500,
           "height": 600
         },
-        "desktop_only": true
+        "desktop_only": true,
+        "start_position":{
+          "top": -250,
+          "left":-100
+        }
       },
       "in_game": {
         "file": "windows/in-game/index.html",
@@ -69,8 +73,12 @@
         "transparent": true,
         "resizable": true,
         "size": {
-          "width": 250,
-          "height": 340
+          "width": 1750,
+          "height": 800
+        },
+        "start_position":{
+          "top": -250,
+          "left":-100
         }
       }
     },
