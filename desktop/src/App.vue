@@ -30,7 +30,7 @@ import Tournaments from "@/components/Tournaments";
     Home,
     Tournaments,
   },
-})     
+})
 export default class App extends Vue {
   tabsName = "Home";
 
@@ -38,8 +38,8 @@ export default class App extends Vue {
     return this.tabsName;
   }
 
-  changeTab(name){
-    console.log("Setting Value: ", name)
+  changeTab(name) {
+    console.log("Setting Value: ", name);
     this.tabsName = name;
   }
 
@@ -78,6 +78,8 @@ export default class App extends Vue {
     });
     // Close app on exit click
     this._exitButton.addEventListener("click", () => {
+      //@ts-ignore
+    
       this._backgroundWindow.close();
     });
     // Minimize app on minimize click
@@ -92,6 +94,8 @@ export default class App extends Vue {
       }
     };
     this.currWindow.dragMove(this._header);
+
+   
   }
 
   _showExitMinimizeModal() {
