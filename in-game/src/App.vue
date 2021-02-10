@@ -165,6 +165,11 @@ export default class App extends Vue {
         console.log("Turning on Auto Highlights: ", result);
       }
     );
+
+
+
+
+
   }
 
   public created() {
