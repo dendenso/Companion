@@ -23,6 +23,8 @@ import Stats from "@/components/Stats";
 import Home from "@/components/Home";
 // @ts-ignore
 import Tournaments from "@/components/Tournaments";
+import firebase from "firebase/app";
+import "firebase/database";
 
 @Component({
   components: {
@@ -30,7 +32,7 @@ import Tournaments from "@/components/Tournaments";
     Home,
     Tournaments,
   },
-})     
+})
 export default class App extends Vue {
   tabsName = "Home";
 
@@ -38,8 +40,8 @@ export default class App extends Vue {
     return this.tabsName;
   }
 
-  changeTab(name){
-    console.log("Setting Value: ", name)
+  changeTab(name) {
+    console.log("Setting Value: ", name);
     this.tabsName = name;
   }
 
@@ -67,6 +69,31 @@ export default class App extends Vue {
       "app-header"
     )[0] as HTMLElement;
     this._version = document.getElementById("version");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBrMp64ttfGC2WiD28JiJXtfUXevFeShCk",
+      authDomain: "test-59db3.firebaseapp.com",
+      databaseURL: "https://test-59db3-default-rtdb.firebaseio.com",
+      projectId: "test-59db3",
+      storageBucket: "test-59db3.appspot.com",
+      messagingSenderId: "890513354906",
+      appId: "1:890513354906:web:ff2483ac34b4f91fb4af23",
+      measurementId: "G-FQST7TCZCR",
+    };
+
+    //imagine we have champ id in game window
+    var champid= 1;
+    //initialize the app
+    firebase.initializeApp(firebaseConfig);
+    //initialize database
+    var database = firebase.database();
+    
+    //query database and print result
+    console.log("connecting to firebase");
+    var checkdatabase = database.ref(String(champid));
+    checkdatabase.on("value", (snapshot) => {
+      console.log("returned", snapshot.val());
+    });
   }
 
   mounted() {
