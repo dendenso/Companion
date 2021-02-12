@@ -105,6 +105,8 @@ export default class App extends Vue {
     });
     // Close app on exit click
     this._exitButton.addEventListener("click", () => {
+      //@ts-ignore
+    
       this._backgroundWindow.close();
     });
     // Minimize app on minimize click
@@ -119,6 +121,8 @@ export default class App extends Vue {
       }
     };
     this.currWindow.dragMove(this._header);
+
+   
   }
 
   _showExitMinimizeModal() {
