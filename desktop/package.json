@@ -13,6 +13,8 @@
     "@vue/cli-plugin-typescript": "^4.2.2",
     "axios": "^0.21.1",
     "core-js": "^3.4.3",
+    "firebase": "^8.2.6",
+    "lol-champions": "^10.23.1",
     "lol-spells": "^8.11.0",
     "typescript": "^3.7.5",
     "vue": "^2.6.10",

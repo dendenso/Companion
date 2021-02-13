@@ -50,7 +50,7 @@ export default class Home extends Vue {
   infoAvailable = false;
   //this is the data being pulled from the launcher
   summoner_info = null;
-  summonerName = "Doublelift";
+  summonerName = "";
   profile_icon_id_url = "";
   splash_art_url = "";
   summonerLevel = "";
@@ -69,7 +69,7 @@ export default class Home extends Vue {
     "Malphite",
     "Fiddlesticks",
   ];
-  
+
   //getter is used by template to see if it needs to change what it displays
   get summonerDataAvailable() {
     return this.infoAvailable;
@@ -124,19 +124,12 @@ export default class Home extends Vue {
             window.setTimeout(setFeatures, 2000);
             return;
           }
-
-          console.log(JSON.stringify(info));
-
           // @ts-ignore
           overwolf.games.launchers.events.getInfo(10902, function (info) {
             if (info.status === "success") {
-              console.log(info);
-              console.log("Summoner Info", info.res.summoner_info.display_name);
-
               //filling in data from what the launcher recieves
               self.summoner_info = info.res.summoner_info;
-              //FOR TESTING PURPOSES
-              //self.summonerName = self.summoner_info.display_name;
+              self.summonerName = self.summoner_info.display_name;
               self.profile_icon_id_url =
                 "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/" +
                 self.summoner_info.profile_icon_id +
@@ -155,7 +148,7 @@ export default class Home extends Vue {
         }
       );
     }
-    
+
     //checks if correct launcher is running
     function launcherRunning(launcherInfo) {
       if (!launcherInfo) {
@@ -170,7 +163,7 @@ export default class Home extends Vue {
       if (Math.floor(launcherInfo.launchers[0].id / 10) != 10902) {
         return false;
       }
-    
+
       console.log("League of Legends launcher running");
       return true;
     }

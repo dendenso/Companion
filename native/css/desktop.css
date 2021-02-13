@@ -229,3 +229,54 @@ hr {
   justify-content: space-around;
   width: 90px;
 }
+
+.grid-container{
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-gap: 10px;
+}
+
+.grid-item{
+  display: inline-grid;
+  border-left: aliceblue;
+}
+
+.stats-overall{
+  display: flex;
+  flex-direction: column;
+  background: #006989;
+  width: auto;
+  padding: 5px 15px;
+  margin: 15px 20px;
+  justify-content:start;
+  font-size: 0.8em;
+  border-radius: 25px;
+}
+
+.champion-grid{
+  display: grid;
+  grid-template-columns: auto auto auto auto auto;
+  padding: 10px;
+  grid-gap: 10px;
+}
+.wrap{
+  display: flex;
+  flex-direction: row;
+  flex-flow: row wrap;
+  padding: 5px;
+}
+
+.recent-champs{
+  margin: 2.5px;
+  margin-bottom: 0.5px;
+}
+
+.little-bigger{
+  font-size: 1.5em;
+}
+
+.col-recent-champ {
+  display: flex;
+  flex-direction: column;
+  margin:auto auto;
+}
