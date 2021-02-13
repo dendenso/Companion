@@ -125,12 +125,18 @@
       </div>
 
       <div class="stats-overall">
-        <u class ="little-bigger">Recent Champions</u><br />
+        <u class="little-bigger">Recent Champions</u><br />
         <div class="wrap">
           <div v-for="champion in recentChampions" :key="champion.id">
-          <div class="col-recent-champ">
-            <img class="recent-champs" :srcset="getChampURL(champion)" alt="champion" height="50" width="50">
-            {{champion.name}}
+            <div class="col-recent-champ">
+              <img
+                class="recent-champs"
+                :srcset="getChampURL(champion)"
+                alt="champion"
+                height="50"
+                width="50"
+              />
+              {{ champion.name }}
             </div>
           </div>
         </div>
@@ -249,8 +255,8 @@ export default class Stats extends Vue {
   }
 
   //this is for the v-for for champ images
-  getChampURL( champ:Champion){
-    console.log("champ", champ)
+  getChampURL(champ: Champion) {
+    console.log("champ", champ);
     return champ.url;
   }
 
@@ -407,7 +413,6 @@ export default class Stats extends Vue {
         await axios
           .get(matchInfoURL)
           .then(async (matchList) => {
-
             var matchNums = 15;
             if (matchList.data.totalGames < 15) {
               matchNums = matchList.data.totalGames;
@@ -665,7 +670,7 @@ export default class Stats extends Vue {
                           }
                         }
                       }
-                    
+
                       break;
                     }
                   }
@@ -691,7 +696,6 @@ export default class Stats extends Vue {
               }
             }
 
-            
             champIDs.forEach((id) => {
               console.log(id);
               for (let i = 0; i < champions.length; i++) {
