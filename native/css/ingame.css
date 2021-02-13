@@ -9,6 +9,7 @@ body {
   flex-direction: column;
   font-size: 14px;
   min-height: 100vh;
+  color: aliceblue;
 }
 
 main {
