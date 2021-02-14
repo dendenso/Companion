@@ -372,6 +372,23 @@ export default class Stats extends Vue {
   }
 
   async created() {
+    // window resize
+    let WindowId;
+    //@ts-ignore
+    overwolf.windows.getCurrentWindow(function (res) {
+      console.log(res);
+      WindowId = res.window.id;
+    console.log("id: ", WindowId)
+    let sizeSettings = {
+        "window_id": WindowId,
+        "width":500,
+        "height":600,
+        "auto_dpi_resize":true //relevant only for native windows
+      };
+      //@ts-ignore
+      overwolf.windows.changeSize(sizeSettings ,console.log);
+    });
+
     //create variable for this
     let self = this;
     //create url to call for summoner data
