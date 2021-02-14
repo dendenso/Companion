@@ -3,7 +3,7 @@
     <ul class="nav">
       <button @click="changeTab('Home')">Home</button>
       <button @click="changeTab('Stats')">Stats</button>
-      <button @click="changeTab('Tournaments')">Tournament</button>
+      <button @click="changeTab('Highlights')">Highlights</button>
     </ul>
     <!--<p>Logo Here</p>
     <h1>(League Companion)</h1>
@@ -22,13 +22,13 @@ import Stats from "@/components/Stats";
 // @ts-ignore
 import Home from "@/components/Home";
 // @ts-ignore
-import Tournaments from "@/components/Tournaments";
+import Highlights from "@/components/Highlights";
 
 @Component({
   components: {
     Stats,
     Home,
-    Tournaments,
+    Highlights,
   },
 })
 export default class App extends Vue {
