@@ -2,14 +2,14 @@
   <div>
     <div>
       SummonerName:
-      <img alt="Champion Icon" :srcset="summonerinfo.url" /><br />
-      Champion: {{ summonerinfo.champion }}
+      <img alt="Champion Icon" :srcset="championInfo.url" /><br />
+      Champion: {{ championInfo.champion }}
 
-      {{ summonerinfo.accountID }}
-      Lvl: {{ summonerinfo.level }} tier: {{ summonerinfo.tier }} queue:{{
-        summonerinfo.queue
+      {{ summonerInfo.accountID }}
+      Lvl: {{ summonerInfo.level }} tier: {{ summonerInfo.tier }} queue:{{
+        summonerInfo.queue
       }}
-      {{ summonerinfo.blurb }}
+      {{ championInfo.blurb }}
       <div v-for="skill in skillOrder" :key="skill">skill: {{ skill }}</div>
       <div v-for="tag in tagsList" :key="tag">Tag: {{ tag }}</div>
 
@@ -27,7 +27,16 @@
       </div>
     </div>
 
-    <div v-if="registeredYet">Registered Team Info:</div>
+    <div v-if="registeredYet">
+      Registered Team Info:<br>
+      <div v-for="player in playerList" :key="player.summonerName">
+        Team:        {{ player.team }}<br>
+        SummonerName: {{ player.summonerName }}<br>
+        Champion:  {{ player.champion }}<br>
+        skinId: {{ player.skinId }}<br>
+      </div>
+      
+      </div>
     <div v-else>Loading Team Data...</div>
   </div>
 </template>
@@ -62,17 +71,34 @@ class Item {
   }
 }
 
+class Player {
+  team: string;
+  champion: string;
+  skinId: string;
+  summonerName: string;
+
+  constructor(team, champion, skinID, summoner) {
+    this.team = team;
+    this.champion = champion;
+    this.skinId = skinID;
+    this.summonerName = summoner;
+  }
+}
+
 @Component
 export default class Home extends Vue {
   registeredTeam = false;
   teams = "";
-  summonerinfo = {
+  summonerInfo = {
     accountID: "",
-    champion: "",
-    url: "",
     level: "",
     tier: "",
     queue: "",
+  };
+
+  championInfo = {
+    champion: "",
+    url: "",
     blurb: "",
   };
 
@@ -81,6 +107,7 @@ export default class Home extends Vue {
   buildOrder: Item[] = new Array();
   tagsList: string[] = new Array();
   //matchId: "3784251268" res.game_info.matchid
+  playerList: Player[] = new Array();
 
   get registeredYet() {
     return this.registeredTeam;
@@ -100,22 +127,22 @@ export default class Home extends Vue {
     let self = this;
     var g_interestedInFeatures = [
       "summoner_info",
-       "gameMode",
-       "teams",
-       "matchState",
-      //"kill",
-      // "death",
-      // "respawn",
-      // "assist",
-      //  "minions",
-      //  "level",
-      //"abilities",// get info when our user updates
+      "gameMode",
+      "teams",
+      "matchState",
+      "kill",
+      "death",
+      "respawn",
+      "assist",
+      "minions",
+      "level",
+      "abilities", // get info when our user uses abilities
       // "announcer", //get info from anouncer, kills, victory, everything announcer says
       //"counters",//internal timer
       // "match_info",//tells you if tft game or league
       //"damage",
       //"heal",
-      //"live_client_data",
+      "live_client_data",
     ];
 
     function registerEvents() {
@@ -130,15 +157,14 @@ export default class Home extends Vue {
       // for events and will contain all the current information
       //@ts-ignore
       overwolf.games.events.onInfoUpdates2.addListener(function (info) {
-        console.log("Info UPDATE: " , info);
-        
+        console.log("Info UPDATE: ", info);
       });
 
       // an event triggerd
       //@ts-ignore
 
       overwolf.games.events.onNewEvents.addListener(function (info) {
-        console.log("EVENT FIRED: ",info);
+        console.log("EVENT FIRED: ", info);
       });
     }
 
@@ -212,12 +238,45 @@ export default class Home extends Vue {
             console.log("Get Info: ", info);
 
             if (info.status === "success") {
-              self.summonerinfo.accountID = info.res.summoner_info.id;
-              self.summonerinfo.champion = info.res.summoner_info.champion;
-              self.summonerinfo.level = info.res.summoner_info.level;
-              self.summonerinfo.tier = info.res.summoner_info.tier;
-              self.summonerinfo.queue = info.res.summoner_info.queue;
+              console.log("Teams Data Recieved: ", info.res.game_info.teams)
+              
 
+                let element  = info.res.game_info.teams;
+                console.log("Initial Element: ", element)
+                let decoded = decodeURI(element);
+                console.log("Decoded Element: ", decoded);
+                let final = JSON.parse(decoded);
+                console.log("JSON Element: ", final);
+                
+                //then add them to array of players.
+                for (let i = 0; i < final.length; i++) {
+                  let temp: Player = new Player(final[i].team, final[i].champion, final[i].skinId, final[i].summoner);
+                  console.log("loading player: ", temp)
+                  self.playerList.push(temp);
+                  console.log("Current List: ", self.playerList)
+                }
+                
+                //change variable so we update the template
+                self.registeredTeam = true;
+                  console.log("Final List of players: ", self.playerList)
+
+
+
+
+
+
+
+
+
+
+              //From here on i'm filling in the champion data as well as
+              //getting basic summoner info
+
+              self.summonerInfo.accountID = info.res.summoner_info.id;
+              self.championInfo.champion = info.res.summoner_info.champion;
+              self.summonerInfo.level = info.res.summoner_info.level;
+              self.summonerInfo.tier = info.res.summoner_info.tier;
+              self.summonerInfo.queue = info.res.summoner_info.queue;
 
               //query database and print result
               console.log("connecting to firebase");
@@ -228,9 +287,8 @@ export default class Home extends Vue {
                 console.log("returned from firebase", snapshot.val());
                 //pull some champ info
                 if (snapshot.val() != null) {
-                  self.summonerinfo.champion = snapshot.val().name;
-                  self.summonerinfo.url = snapshot.val().url;
-                    self.summonerinfo.blurb = snapshot.val().blurb;
+                  self.championInfo.url = snapshot.val().url;
+                  self.championInfo.blurb = snapshot.val().blurb;
                   //get skill order
                   //notice the difference in notation to access skill vs build list
                   //it's cause skill list had a space in it when it was being entered
@@ -267,7 +325,6 @@ export default class Home extends Vue {
                   }
                 }
               });
-
             }
           });
         }
@@ -283,7 +340,7 @@ export default class Home extends Vue {
         setTimeout(setFeatures, 1000);
       }
 
-       console.log("onGameInfoUpdated: " + JSON.stringify(res));
+      //   console.log("onGameInfoUpdated: " + JSON.stringify(res));
     });
 
     //@ts-ignore
@@ -293,7 +350,7 @@ export default class Home extends Vue {
         registerEvents();
         setTimeout(setFeatures, 1000);
       }
-       console.log("getRunningGameInfo: " + JSON.stringify(res));
+      //   console.log("getRunningGameInfo: " + JSON.stringify(res));
     });
   }
 }
