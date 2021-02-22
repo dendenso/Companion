@@ -1,42 +1,95 @@
 <template>
   <div>
-    <div>
-      SummonerName:
-      <img alt="Champion Icon" :srcset="championInfo.url" /><br />
-      Champion: {{ championInfo.champion }}
+    <div class="horizontal" v-if="registeredYet">
+      <div class="summoner-grid">
+        <div v-for="player in playerList" :key="player.summonerName">
+          <div class="summoner-profile">
+            <div>Team: {{ player.team }}</div>
+            <div>{{ player.summonerName }}</div>
+            <div>{{ player.champion }}</div>
 
-      {{ summonerInfo.accountID }}
-      Lvl: {{ summonerInfo.level }} tier: {{ summonerInfo.tier }} queue:{{
-        summonerInfo.queue
-      }}
-      {{ championInfo.blurb }}
-      <div v-for="skill in skillOrder" :key="skill">skill: {{ skill }}</div>
-      <div v-for="tag in tagsList" :key="tag">Tag: {{ tag }}</div>
-
-      <div v-for="item in buildOrder" :key="item.name">
-        <div class="col-recent-champ">
+            <img
+              class="champion-splash"
+              :srcset="getSplashUrl(player)"
+              alt="champion splash art"
+              height="100"
+              width="400"
+            />
+          </div>
+        </div>
+      </div>
+      <!-- Champion column to the right -->
+      <div class="champion-column">
+        <div class="center-horizontal">
+          <!-- champ image and name -->
           <img
-            class="recent-champs"
-            :srcset="getItemUrl(item)"
-            alt="champion"
-            height="50"
-            width="50"
+            alt="Champion Icon"
+            :srcset="championInfo.url"
+            class="champ-circle"
           />
-          {{ item.name }}
+          <h1>{{ championInfo.champion }}</h1>
+        </div>
+
+        <!-- Champion tags -->
+        <div class="tag-box">
+          <div v-for="tag in tagsList" :key="tag" class="tag-box">
+            <div class="champ-tag">
+              {{ tag }}
+            </div>
+          </div>
+        </div>
+        <!-- {{ summonerInfo.accountID }} -->
+        <!-- Lvl: {{ summonerInfo.level }} tier: {{ summonerInfo.tier }} queue:{{
+          summonerInfo.queue
+        }} -->
+        <div style="text-align: left; margin: 10px auto">
+          {{ championInfo.blurb }}
+        </div>
+
+        <h2 style="text-align: center">
+          {{ championInfo.champion }} Build Guide
+        </h2>
+        <h3>Item Build Order</h3>
+        <div v-for="item in buildOrder" :key="item.name">
+          <div class="col-recent-champ">
+            <img
+              class="recent-champs"
+              :srcset="getItemUrl(item)"
+              alt="champion square"
+              height="50"
+              width="50"
+            />
+            {{ item.name }}
+          </div>
+        </div>
+        <h3>Skill Order</h3>
+        <div class="skill-grid">
+          <!-- Layout numbers for grid -->
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+          <div>4</div>
+          <div>5</div>
+          <div>6</div>
+          <div>7</div>
+          <div>8</div>
+          <div>9</div>
+          <div>10</div>
+          <div>11</div>
+          <div>12</div>
+          <div>13</div>
+          <div>14</div>
+          <div>15</div>
+          <div>16</div>
+          <div>17</div>
+          <div>18</div>
+          <!-- Go through skills dynamically making the grid -->
+          <div v-for="skill in skillOrder" :key="skill">
+            <div class="grid-item">{{ skill }}</div>
+          </div>
         </div>
       </div>
     </div>
-
-    <div v-if="registeredYet">
-      Registered Team Info:<br>
-      <div v-for="player in playerList" :key="player.summonerName">
-        Team:        {{ player.team }}<br>
-        SummonerName: {{ player.summonerName }}<br>
-        Champion:  {{ player.champion }}<br>
-        skinId: {{ player.skinId }}<br>
-      </div>
-      
-      </div>
     <div v-else>Loading Team Data...</div>
   </div>
 </template>
@@ -76,12 +129,14 @@ class Player {
   champion: string;
   skinId: string;
   summonerName: string;
+  champImgURL: string;
 
-  constructor(team, champion, skinID, summoner) {
+  constructor(team, champion, skinID, summoner, url) {
     this.team = team;
     this.champion = champion;
     this.skinId = skinID;
     this.summonerName = summoner;
+    this.champImgURL = url;
   }
 }
 
@@ -115,8 +170,11 @@ export default class Home extends Vue {
 
   //this is for the v-for for champ images
   getItemUrl(item: Item) {
-    console.log("item: ", item);
     return item.img;
+  }
+
+  getSplashUrl(player: Player) {
+    return player.champImgURL;
   }
 
   mounted() {
@@ -238,36 +296,32 @@ export default class Home extends Vue {
             console.log("Get Info: ", info);
 
             if (info.status === "success") {
-              console.log("Teams Data Recieved: ", info.res.game_info.teams)
-              
+              let element = info.res.game_info.teams;
+              console.log("Initial Element: ", element);
+              let decoded = decodeURI(element);
+              console.log("Decoded Element: ", decoded);
+              let final = JSON.parse(decoded);
+              console.log("JSON Element: ", final);
 
-                let element  = info.res.game_info.teams;
-                console.log("Initial Element: ", element)
-                let decoded = decodeURI(element);
-                console.log("Decoded Element: ", decoded);
-                let final = JSON.parse(decoded);
-                console.log("JSON Element: ", final);
-                
-                //then add them to array of players.
-                for (let i = 0; i < final.length; i++) {
-                  let temp: Player = new Player(final[i].team, final[i].champion, final[i].skinId, final[i].summoner);
-                  console.log("loading player: ", temp)
-                  self.playerList.push(temp);
-                  console.log("Current List: ", self.playerList)
-                }
-                
-                //change variable so we update the template
-                self.registeredTeam = true;
-                  console.log("Final List of players: ", self.playerList)
+              //then add them to array of players.
+              for (let i = 0; i < final.length; i++) {
+                let temp: Player = new Player(
+                  final[i].team,
+                  final[i].champion,
+                  final[i].skinId,
+                  final[i].summoner,
+                  "http://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" +
+                    final[i].champion +
+                    ".png"
+                );
+                console.log("loading player: ", temp);
+                self.playerList.push(temp);
+                console.log("Current List: ", self.playerList);
+              }
 
-
-
-
-
-
-
-
-
+              //change variable so we update the template
+              self.registeredTeam = true;
+              console.log("Final List of players: ", self.playerList);
 
               //From here on i'm filling in the champion data as well as
               //getting basic summoner info
@@ -277,7 +331,10 @@ export default class Home extends Vue {
               self.summonerInfo.level = info.res.summoner_info.level;
               self.summonerInfo.tier = info.res.summoner_info.tier;
               self.summonerInfo.queue = info.res.summoner_info.queue;
-
+              self.championInfo.url =
+                "http://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" +
+                info.res.summoner_info.champion +
+                ".png";
               //query database and print result
               console.log("connecting to firebase");
               var checkdatabase = firebase
@@ -287,7 +344,6 @@ export default class Home extends Vue {
                 console.log("returned from firebase", snapshot.val());
                 //pull some champ info
                 if (snapshot.val() != null) {
-                  self.championInfo.url = snapshot.val().url;
                   self.championInfo.blurb = snapshot.val().blurb;
                   //get skill order
                   //notice the difference in notation to access skill vs build list
