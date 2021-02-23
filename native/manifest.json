@@ -20,7 +20,8 @@
     "GameInfo",
     "DesktopStreaming",
     "FileSystem",
-    "VideoCaptureSettings"
+    "VideoCaptureSettings",
+    "Media"
   ],
   "data": {
     "game_targeting": {
@@ -56,14 +57,15 @@
         "native_window": true,
         "transparent": true,
         "resizable": false,
+        "allow_local_file_access": true,
         "size": {
           "width": 500,
           "height": 600
         },
         "desktop_only": true,
-        "start_position":{
+        "start_position": {
           "top": -250,
-          "left":-100
+          "left": -100
         }
       },
       "in_game": {
@@ -76,9 +78,9 @@
           "width": 800,
           "height": 800
         },
-        "start_position":{
+        "start_position": {
           "top": -250,
-          "left":-100
+          "left": -100
         }
       }
     },
