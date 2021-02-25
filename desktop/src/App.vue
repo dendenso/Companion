@@ -39,7 +39,6 @@ export default class App extends Vue {
   }
 
   changeTab(name) {
-    console.log("Setting Value: ", name);
     this.tabsName = name;
   }
 
@@ -94,13 +93,6 @@ export default class App extends Vue {
       }
     };
     this.currWindow.dragMove(this._header);
-
-     //@ts-ignore
-    overwolf.media.videos.getVideos(function (res) {
-      console.log("result from Get Vidoes", res);
-    });
-
-
    
   }
 
