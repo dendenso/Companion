@@ -200,7 +200,7 @@ export default class Home extends Vue {
       // "match_info",//tells you if tft game or league
       //"damage",
       //"heal",
-      "live_client_data",
+      //"live_client_data",
     ];
 
     function registerEvents() {
@@ -214,13 +214,15 @@ export default class Home extends Vue {
       // This will also be triggered the first time we register
       // for events and will contain all the current information
       //@ts-ignore
-      overwolf.games.events.onInfoUpdates2.addListener(function (info) {
+      overwolf.games.events.onInfoUpdates2.addListener(function (info) { //TODO in the case the delay doesn't work out 
         console.log("Info UPDATE: ", info);
+        // if(info.feature = "particular string"){
+        // (info.feature = summoner info) checking USE PLAYER CLASS
+        //}
       });
 
       // an event triggerd
       //@ts-ignore
-
       overwolf.games.events.onNewEvents.addListener(function (info) {
         console.log("EVENT FIRED: ", info);
       });
@@ -269,10 +271,11 @@ export default class Home extends Vue {
       console.log("LoL running");
       return true;
     }
-
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
     function setFeatures() {
       //@ts-ignore
-
       overwolf.games.events.setRequiredFeatures(
         g_interestedInFeatures,
         function (info) {
@@ -285,14 +288,18 @@ export default class Home extends Vue {
 
           console.log("Set required features:");
           console.log(JSON.stringify(info));
+          // @ts-ignore
           // //@ts-ignore
           // overwolf.games.events.getInfo( result =>{
           //   console.log("result",result);
           //   self.events.push(result);
           // })
-
           //@ts-ignore
-          overwolf.games.events.getInfo(function (info) {
+          //TODO find delay here and debug or separate
+         overwolf.games.events.getInfo( async function (info) {
+            console.log("before sleep");
+            await sleep(20000);
+            console.log("after sleep 20 seconds");
             console.log("Get Info: ", info);
 
             if (info.status === "success") {
@@ -304,7 +311,7 @@ export default class Home extends Vue {
               console.log("JSON Element: ", final);
 
               //then add them to array of players.
-              for (let i = 0; i < final.length; i++) {
+              for (let i = 0; i < final.length; i++) { //TODO for loop here
                 let temp: Player = new Player(
                   final[i].team,
                   final[i].champion,
