@@ -199,26 +199,43 @@ export default class App extends Vue {
 
   // Displays the toggle minimize/restore hotkey in the window header
   private async setToggleHotkeyText() {
+    let self = this;
     // const hotkeyText = await OWHotkeys.getHotkeyText(hotkeys.toggle);
 
     //@ts-ignore
     overwolf.settings.hotkeys.get((e) => {
      // console.log("hotkey data", e.games["5426"]);
+      console.log("Getting Hotkey: ", e);
       const hotkeyElem = document.getElementById("hotkey");
       //@ts-ignore
       hotkeyElem.textContent = e.games["5426"]["0"]["binding"];
-
+      
       //@ts-ignore
-      overwolf.settings.hotkeys.OnPressedEvent.addListener(function (res) {
-        console.log("hotkey pressed", res);
-      });
+      overwolf.settings.hotkeys.onPressed.addListener(async function (info) {
+        console.log("Hotkey Pressed Info: ", info);
+        const inGameState = await self.getWindowState();
+
+          if (
+            inGameState.window_state === "normal" ||
+            inGameState.window_state === "maximized"
+          ) {
+            self.currWindow.minimize();
+          } else if (
+            inGameState.window_state === "minimized" ||
+            inGameState.window_state === "closed"
+          ) {
+            self.currWindow.restore();
+          }
+          });
+
     });
   }
 
   // Sets toggleInGameWindow as the behavior for the Ctrl+F hotkey
   private async setToggleHotkeyBehavior() {
+    console.log("Setting Hotkey behavior.")
     const toggleInGameWindow = async (hotkeyResult) => {
-      console.log(`pressed hotkey for ${hotkeyResult.featureId}`);
+      console.log("toggleInGameWindow", hotkeyResult);
       const inGameState = await this.getWindowState();
 
       if (
@@ -234,8 +251,8 @@ export default class App extends Vue {
       }
     };
 
-    OWHotkeys.onHotkeyDown(hotkeys.toggle, toggleInGameWindow);
   }
+
   public async getWindowState() {
     return await this.currWindow.getWindowState();
   }

@@ -39,7 +39,7 @@
     "hotkeys": {
       "sample_app_showhide": {
         "title": "Show/Hide In-Game Window",
-        "action-type": "toggle",
+        "action-type": "custom",
         "default": "Ctrl+F"
       }
     },
@@ -60,26 +60,21 @@
           "width": 500,
           "height": 600
         },
-        "desktop_only": true,
-        "start_position":{
-          "top": -250,
-          "left":-100
-        }
+        "desktop_only": true
+
       },
       "in_game": {
         "file": "windows/in-game/index.html",
         "in_game_only": true,
         "focus_game_takeover": "ReleaseOnHidden",
+        "focus_game_takeover_release_hotkey": "sample_app_showhide",
         "transparent": true,
         "resizable": true,
         "size": {
           "width": 1450,
           "height": 800
-        },
-        "start_position":{
-          "top": -250,
-          "left":-100
         }
+  
       }
     },
     "protocol_override_domains": { "googlesyndication": "http" },
