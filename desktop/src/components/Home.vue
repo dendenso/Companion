@@ -192,6 +192,14 @@ export default class Home extends Vue {
 
   created() {
     //runs after mounted()
+
+    let element =
+      "%5B%7B%22team%22:%22Order%22,%22champion%22:%22Sona%22,%22skinId%22:%220%22,%22summoner%22:%22overthis1%22%7D%5D";
+    console.log("Initial Element: ", element);
+    let decoded = decodeURI(element);
+    console.log("Decoded Element: ", decoded);
+    let final = JSON.parse(decoded);
+    console.log("JSON Element: ", final);
   }
 }
 </script>
