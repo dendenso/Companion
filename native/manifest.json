@@ -94,7 +94,8 @@
         "https://www.facebook.com",
         "https://www.reddit.com",
         "http://ddragon.leagueoflegends.com",
-        "https://na1.api.riotgames.com"
+        "https://na1.api.riotgames.com",
+        "​https://127.0.0.1:2999/"
       ]
     },
     "force_browser": "user",
