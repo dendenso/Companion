@@ -1,25 +1,33 @@
 <template>
   <div>
     <h1 style="text-align: center; color: white; padding: 20px">Highlights</h1>
-    <hr/>
+    <hr />
     <div class="highlights-container">
       <div class="highlights-list">
         <!-- for loop to go through video folders -->
-        <div v-for="folder in videoList" :key="folder.folderPath">
+        <div v-for="folder in videoList.slice().reverse()" :key="folder.date">
           <div class="folder-tab">
             <h2>{{ folder.date }}</h2>
             <h3>{{ folder.time }}</h3>
             <!-- for loop to go through videos in the folder -->
             <div v-for="video in folder.videoList" :key="video.videoAddress">
-              <button
-                class="video-button"
-                @click="setVideo(video.videoAddress)"
-              >
-                {{ video.videoTime }}
-              </button>
+              <div class="video-button" @click="setVideo(video.videoAddress)">
+                {{ video.highlightType }}<br>
+                {{ video.videoStartTime }}<br>
+                {{ video.duration }}<br>
+                {{ video.highlight }}<br>
+                <img
+                  class="recent-champs"
+                  :src="video.thumbnail_url"
+                  alt="thumbnail"
+                  height="75"
+                  width="75"
+                />
+              </div>
             </div>
           </div>
         </div>
+        <div>test</div>
       </div>
       <!-- video side -->
       <div class="video-side">
@@ -44,25 +52,27 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import Dexie from "dexie";
+
 //this class represents a video inside a folder
 class Video {
   public videoAddress: string;
-  public videoTime: string;
-  //video type can be added here; assists/kills/whatever is in the vid
+  public videoStartTime: string;
+  public duration: string;
+  public highlightType: string;
+  public thumbnail_url: string;
 }
 
 //this class represents a folder
 class VideoFolder {
-  //date maybe? can be parsed from the folder name and displayed
-  public folderPath: string;
-  //need to be changed probably
+  //if we query match id with riot we can probabyly get matchtype and champion used
+  public gameType: string; //regular/aram/practice
+  public champion: string; //url of champion img
+
+  //below is received from database
   public date: string;
   public time: string;
   public videoList: Array<Video> = [];
-
-  constructor() {
-    this.folderPath = "";
-  }
 
   setDate(date: string) {
     this.date = date;
@@ -71,15 +81,9 @@ class VideoFolder {
   setTime(time: string) {
     this.time = time;
   }
-  setFolder(name: string) {
-    this.folderPath = name;
-  }
 
-  addVideoToFolder(videoURL: string, videoTime: string) {
-    let tempVid = new Video();
-    tempVid.videoAddress = videoURL;
-    tempVid.videoTime = videoTime;
-    this.videoList.push(tempVid);
+  addVideoToFolder(video: Video) {
+    this.videoList.push(video);
   }
 }
 
@@ -92,91 +96,138 @@ export default class Highlights extends Vue {
     this.current_Video = newVideo;
   }
 
-  mounted() {
+  async mounted() {
     let self = this;
-    // //@ts-ignore
-    // //delete videos if more than a gigabyte
-    // NEED TO RUN THIS IN A WAY IT HAPPENS BEFORE GETVIDEOS
-    // overwolf.media.videos.deleteOldVideos(1, e => {
-    //   console.log("deleted videos", e)
-    // })
+    let setFirstVideo = false;
     //fetch recent videos
 
-    console.log("current video: ", self.current_Video);
-    //@ts-ignore'
+    //open local database
+    var localDB = new Dexie("highlightsDB");
+    localDB.version(1).stores({
+      matches: "match_id, match_start_time",
+      videos:
+        "media_url, match_id, thumbnail_url, highlight_start_time, duration, hightType",
+    });
 
-    overwolf.media.videos.getVideos(function (res) {
-      console.log("result from Get Vidoes", res);
+    //get last 5 most recent games
+    const recentGames = await localDB
+      .table("matches")
+      .orderBy("match_start_time")
+      .reverse()
+      .limit(5)
+      .toArray()
+      .catch((e) => console.log(e));
 
-      //parse possible videos
-      //if successfully recieved
-      if (res.status === "success") {
-        //start gathering video urls by looping through them
-        for (let index = 0; index < res.videos.length; index++) {
-          const element = res.videos[index];
+    //get all other games
+    const olderGames = await localDB
+      .table("matches")
+      .orderBy("match_start_time")
+      .reverse()
+      .offset(5)
+      .toArray()
+      .catch((e) => console.log(e));
 
-          //get folder path
-          let path = element.substring(0, 102);
-          let date = new Date(element.substring(78, 88)).toLocaleDateString();
-          let time = element.substring(89, 97);
+    //display results
+    console.log("array of recent games: ", recentGames);
+    console.log("array of older games: ", olderGames);
 
-          // make fist video the most recent video
-          if(index === res.videos.length - 1){
-            self.current_Video = element;
-            console.log("actual curr video: ", self.current_Video);
-          }
-          //check if array of folders is empty
-          if (self.videoList.length === 0) {
-            //if it is create first element
-            let newFolder = new VideoFolder();
+    //loop through last 5 games and use game id's to pull data
+    //@ts-ignore
+    for (let index = 0; index < recentGames.length; index++) {
+      let match_date = new Date(recentGames[index].match_start_time);
 
-            //give it an address
-            newFolder.setFolder(path);
+      //create new match
+      let tempFolder = new VideoFolder();
 
-            //address is too long so i added the date and time
-            newFolder.setDate(date);
-            newFolder.setTime(time);
+      //set date and time from the database
+      tempFolder.setDate(match_date.toDateString());
+      tempFolder.setTime(match_date.toLocaleTimeString());
 
-            //add video to array
-            newFolder.addVideoToFolder(element, element.substring(131, 136));
+      //get all the videos with matching ids
+      let videosInMatch = await localDB
+        .table("videos")
+        .where("match_id")
+        .equals(recentGames[index].match_id)
+        .toArray()
+        .catch((e) => console.log(e));
+      console.log("Videos Found: ", videosInMatch);
 
-            
-            //add folder to array of folders
-            self.videoList.push(newFolder);
-          } else {
-            //if its not empty then see if it matches the folder path of the folder at the end
-            if (self.videoList[self.videoList.length - 1].folderPath === path) {
-              //if it does match then add it to the array of video urls for this folder
-              self.videoList[self.videoList.length - 1].addVideoToFolder(
-                element,
-                element.substring(131, 136)
-              );
-            } else {
-              //if it does not match the folder path then we have a new folder
-              //so we create a new folder object, with this new path and add the url to the array
+      //@ts-ignore
+      for (let urls = 0; urls < videosInMatch.length; urls++) {
+        let tempVideo = new Video();
 
-              let newFolder = new VideoFolder();
-
-              //give it an address
-              newFolder.setFolder(path);
-              //address is too long so i added the date and time
-              newFolder.setDate(date);
-              newFolder.setTime(time);
-              //add video to array
-              newFolder.addVideoToFolder(element, element.substring(131, 136));
-
-              //add folder to array of folders
-              self.videoList.push(newFolder);
-            }
-          }
+        // console.log("duration: ", new Date  (videosInMatch[urls].duration).getSeconds()+"s");
+        // console.log("highlight_start_time: ", new Date  (videosInMatch[urls].highlight_start_time).toLocaleTimeString());
+        // console.log("hightType: ", videosInMatch[urls].hightType.charAt(0).toUpperCase() + videosInMatch[urls].hightType.slice(1)); //make first letter uppercase
+        // console.log("media_url: ", videosInMatch[urls].media_url);
+        // console.log("thumbnail_url: ",videosInMatch[urls].thumbnail_url); 
+        if(!setFirstVideo){
+          self.current_Video = videosInMatch[urls].media_url;
+          setFirstVideo = true;
         }
-      } else {
-        console.log("Error getting videos");
+        tempVideo.videoAddress = videosInMatch[urls].media_url;
+        tempVideo.videoStartTime = new Date  (videosInMatch[urls].highlight_start_time).toLocaleTimeString();
+        tempVideo.duration =
+          new Date(videosInMatch[urls].duration).getSeconds() + "s";
+        tempVideo.highlightType =
+          videosInMatch[urls].hightType.charAt(0).toUpperCase() +
+          videosInMatch[urls].hightType.slice(1); //make first letter uppercase
+        tempVideo.thumbnail_url = videosInMatch[urls].thumbnail_url;
+
+        tempFolder.addVideoToFolder(tempVideo);
       }
 
-      console.log("Parsed Vidoes:", self.videoList);
-    });
+      self.videoList.push(tempFolder);
+    }
+
+
+    //after this all the data is being displayed
+    //but now we need to delete the older games, so they dont pollute the database
+    //loop through older games and use game id's to delete data
+    //@ts-ignore
+    for (let index = 0; index < olderGames.length; index++) {
+
+      //get all the videos with matching ids
+       let olderVideos = await localDB
+        .table("videos")
+        .where("match_id")
+        .equals(olderGames[index].match_id)
+        .toArray()
+        .catch((e) => console.log(e));
+      console.log("Older Videos Found: ", olderVideos);
+
+      //loop through video adresses in matches
+      //@ts-ignore
+      for (let urls = 0; urls < olderVideos.length; urls++) {
+        //delete actual videos from local disk using overwolf
+        //@ts-ignore
+        overwolf.media.videos.deleteVideo(olderVideos[urls].media_url);
+      }
+
+      //then remove them from the videos database
+      localDB
+        .table("videos")
+        .where("match_id")
+        .equals(recentGames[index].match_id).delete().then( (deleteCount) => {
+        console.log("Deleted older highlights videos: ", deleteCount);
+      }).catch( e=> console.log(e));
+    }
+
+    //get all other games
+    await localDB
+      .table("matches")
+      .orderBy("match_start_time")
+      .reverse()
+      .offset(5).delete()
+      .then( (deleteCount) => {
+        console.log("Deleted old match data", deleteCount)
+      })
+      .catch((e) => console.log(e));
+
+
   }
+
+  
 
   created() {
     // window resize

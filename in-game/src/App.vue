@@ -45,6 +45,7 @@ import {
 } from "../../shared/constants/consts";
 import { OWHotkeys } from "../../shared/libs/ow-hotkeys";
 import { OWWindow } from "../../shared/libs/ow-window";
+import Dexie from "dexie";
 // @ts-ignore
 let WindowState = overwolf.windows.WindowState;
 
@@ -74,6 +75,16 @@ export default class App extends Vue {
 
   //deals with functions of top bar buttons
   mounted() {
+    //create db with Dexie
+    var localDB = new Dexie("highlightsDB");
+    var firstHighlight = true;
+
+    localDB.version(1).stores({
+      matches: "match_id, match_start_time",
+      videos:
+        "media_url, match_id, thumbnail_url, highlight_start_time, duration, hightType",
+    });
+
     this._eventsLog = document.getElementById("eventsLog");
     this._infoLog = document.getElementById("infoLog");
 
@@ -105,26 +116,64 @@ export default class App extends Vue {
     // Auto-highlights
     // @ts-ignore
     overwolf.media.replays.onCaptureError.addListener(function (res) {
-      console.log("result from CaptureErrorEvent", res);
+      console.log("result from CaptureErrorEvent: ", res);
     });
 
     // @ts-ignore
     overwolf.media.replays.onCaptureStopped.addListener(function (res) {
-      console.log("result from Capture Stopped", res);
+      console.log("result from Capture Stopped: ", res);
     });
     // @ts-ignore
     overwolf.media.replays.onCaptureWarning.addListener(function (res) {
-      console.log("result from Capture Warning", res);
+      console.log("result from Capture Warning: ", res);
     });
     // @ts-ignore
 
     overwolf.media.replays.onReplayServicesStarted.addListener(function (res) {
-      console.log("result from onReplayServicesStarted ", res);
+      console.log("result from onReplayServicesStarted: ", res);
     });
     // @ts-ignore
 
-    overwolf.media.replays.onHighlightsCaptured.addListener(function (res) {
-      console.log("result from onHighlightsCaptured", res);
+    overwolf.media.replays.onHighlightsCaptured.addListener(async function (
+      res
+    ) {
+      console.log("result from onHighlightsCaptured: ", res);
+
+      let path = res.media_url.replace("replays", "videos");
+
+      if (firstHighlight) {
+        await localDB
+          .table("matches")
+          .put({
+            match_id: res.match_id,
+            match_start_time: res.match_start_time,
+          })
+          .catch((e) => console.log(e));
+        await localDB
+          .table("videos")
+          .add({
+            match_id: res.match_id,
+            media_url: path,
+            thumbnail_url: res.thumbnail_url,
+            highlight_start_time: res.start_time,
+            duration: res.duration,
+            hightType: res.events[0],
+          })
+          .catch((e) => console.log(e));
+          firstHighlight = false;
+      } else {
+        await localDB
+          .table("videos")
+          .add({
+            media_url: path,
+            match_id: res.match_id,
+            thumbnail_url: res.thumbnail_url,
+            highlight_start_time: res.start_time,
+            duration: res.duration,
+            hightType: res.events[0],
+          })
+          .catch((e) => console.log(e));
+      }
     });
 
     let videoSetting = {
@@ -140,7 +189,7 @@ export default class App extends Vue {
         enable: true,
       },
       quota: {
-        max_quota_gb: 2,
+        max_quota_gb: 1,
         excluded_directories: ["cool_session"], //set directories that are not part of the quota
       },
     };
@@ -165,11 +214,6 @@ export default class App extends Vue {
         console.log("Turning on Auto Highlights: ", result);
       }
     );
-
-
-
-
-
   }
 
   public created() {
@@ -231,7 +275,7 @@ export default class App extends Vue {
       //@ts-ignore
 
       overwolf.games.events.onInfoUpdates2.addListener(function (info) {
-      //  console.log("Info UPDATE: " + JSON.stringify(info));
+        //  console.log("Info UPDATE: " + JSON.stringify(info));
         self.infos.push(info);
       });
 
@@ -240,7 +284,7 @@ export default class App extends Vue {
 
       overwolf.games.events.onNewEvents.addListener(function (info) {
         self.events.push(info);
-      //  console.log("EVENT FIRED: " + JSON.stringify(info));
+        //  console.log("EVENT FIRED: " + JSON.stringify(info));
       });
     }
 
@@ -321,7 +365,7 @@ export default class App extends Vue {
         setTimeout(setFeatures, 1000);
       }
 
-     // console.log("onGameInfoUpdated: " + JSON.stringify(res));
+      // console.log("onGameInfoUpdated: " + JSON.stringify(res));
     });
 
     //@ts-ignore
@@ -331,7 +375,7 @@ export default class App extends Vue {
         registerEvents();
         setTimeout(setFeatures, 1000);
       }
-    //  console.log("getRunningGameInfo: " + JSON.stringify(res));
+      //  console.log("getRunningGameInfo: " + JSON.stringify(res));
     });
   }
 

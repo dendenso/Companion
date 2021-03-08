@@ -285,7 +285,7 @@ html {background-color:rgb(0, 46, 59);
 .highlights-container{
     color: white;
     margin: 0;
-    padding: 0;
+    padding:  auto 15px;
     font-family: 'Lato', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -296,9 +296,10 @@ html {background-color:rgb(0, 46, 59);
 .highlights-list{
   height: 800px;
   display: flex;
-  flex-direction: column-reverse;
-  overflow:auto;
+  flex-direction: column;
+  overflow-y:auto;
   width: 30%;
+  
 }
 
 
@@ -306,7 +307,18 @@ html {background-color:rgb(0, 46, 59);
 .folder-tab{
   background: #516F7B;
   padding: 15px;
-  margin: 15px 15px;
+  margin: 20px auto;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  border-radius: 25px;
+}
+.folder-tab:last-child{
+  background: #516F7B;
+  padding: 15px;
+  margin: 15px auto;
+  margin-bottom: 200px;
   width: 400px;
   display: flex;
   flex-direction: column;
@@ -320,8 +332,8 @@ html {background-color:rgb(0, 46, 59);
   color: aliceblue;
   text-align: center;
   width: 100%;
+  border-radius: 25px;
 }
-
 
 /* Video area */
 .video-side{
@@ -330,6 +342,7 @@ html {background-color:rgb(0, 46, 59);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 /* Buttons below video */
@@ -344,7 +357,7 @@ html {background-color:rgb(0, 46, 59);
 
 button{
   padding: 10px;
-  font-size: 1.8;
+  font-size: 1.3em;
   border-radius: 25px;
 }
 
