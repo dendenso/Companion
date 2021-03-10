@@ -452,13 +452,13 @@ export default class Stats extends Vue {
       self.summonerName = window.localStorage.getItem("localUsername");
 
       self.profile_icon_id_url = window.sessionStorage.getItem("iconURL");
+      self.infoAvailable = true;
 
 
       await axios
         .get(matchInfoURL)
         .then(async (matchList) => {
           self.getStatsFromMatchlist(matchList);
-          self.infoAvailable = true;
 
         })
 
