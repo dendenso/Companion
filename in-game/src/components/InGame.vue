@@ -1,13 +1,22 @@
 <template>
   <div>
-    <div class="horizontal" v-if="registeredYet">
+    <div class="horizontal" v-if="true">
       <div class="summoner-grid">
         <div v-for="player in playerList" :key="player.summonerName">
           <div class="summoner-profile">
             <div>Team: {{ player.team }}</div>
             <div>{{ player.summonerName }}</div>
             <div>{{ player.champion }}</div>
-
+            <!--<div v-for="runes in player.runeList" :key="runes">
+            <img
+              class="champion-splash"
+              :srcset="runes"
+              alt="champion splash art"
+              height="100"
+              width="400"
+            />
+            </div>-->
+            
             <img
               class="champion-splash"
               :srcset="getSplashUrl(player)"
@@ -24,10 +33,10 @@
           <!-- champ image and name -->
           <img
             alt="Champion Icon"
-            :srcset="championInfo.url"
+            :srcset= "imgURL"
             class="champ-circle"
           />
-          <h1>{{ championInfo.champion }}</h1>
+          <!--<h1>{{ imgURL }}</h1>-->
         </div>
 
         <!-- Champion tags -->
@@ -90,7 +99,13 @@
         </div>
       </div>
     </div>
-    <div v-else>Loading Team Data...</div>
+    <div v-else>Loading Team Data...</div><br>
+    <img
+            alt="Champion Icon"
+            :srcset= "imgURL"
+            class="champ-circle"
+          />
+          <!--<h1> {{ imgURL}} </h1>-->
   </div>
 </template>
 
@@ -124,24 +139,18 @@ class Item {
   }
 }
 
-class Player {
-  team: string;
-  champion: string;
-  skinId: string;
-  summonerName: string;
-  champImgURL: string;
-
-  constructor(team, champion, skinID, summoner, url) {
-    this.team = team;
-    this.champion = champion;
-    this.skinId = skinID;
-    this.summonerName = summoner;
-    this.champImgURL = url;
-  }
+class  Player {
+  public team: string;
+  public champion: string;
+  public skinId: string;
+  public summonerName: string;
+  public champImgURL: string;
+  public runeList: Array<string> = [];
 }
 
 @Component
 export default class Home extends Vue {
+  imgURL;
   registeredTeam = false;
   teams = "";
   summonerInfo = {
@@ -165,7 +174,7 @@ export default class Home extends Vue {
   playerList: Player[] = new Array();
 
   get registeredYet() {
-    return this.registeredTeam;
+    return true;
   }
 
   //this is for the v-for for champ images
@@ -274,6 +283,7 @@ export default class Home extends Vue {
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
+    
     function setFeatures() {
       //@ts-ignore
       overwolf.games.events.setRequiredFeatures(
@@ -285,15 +295,34 @@ export default class Home extends Vue {
             window.setTimeout(setFeatures, 2000);
             return;
           }
-
           console.log("Set required features:");
           console.log(JSON.stringify(info));
-
-          console.log("requesting live client data");
-          await axios
+          console.log("reached outside await axios");
+          let tempName;
+            await axios
             .get("https://127.0.0.1:2999/liveclientdata/allgamedata")
-            .then((r) => console.log(r))
-            .catch((e) => console.log(e));
+            .then((r) =>  { //inside then so it should produce the relevant r values
+                    for(var Num = 0;  r.data.allPlayers.length > Num ; Num++ ){ // all data would be in for loop
+                        console.log(self.imgURL + "before");
+                        tempName = r.data.allPlayers[Num].championName;
+                        console.log(tempName);
+                        self.playerList.push(r.data.allPlayers[Num].summonerName);
+                        self.imgURL =  ("https://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" + r.data.allPlayers[Num].championName + ".png");
+                        console.log(self.imgURL +"after designation");
+                        
+                        /*for(var tempnum = 0;r.data.allPlayers[Num].runes.length > tempnum; tempnum++ ) {
+                          tempPlayer.runeList.push("ddragon.leagueoflegends.com/cdn/11.4.1/img" + r.data.allPlayers[Num].runes[tempnum] + ".png")
+                          }//placeholder
+                        tempPlayer.summonerName = r.data.allPlayers[Num].
+                        console.log("ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" +
+                        r.data.allPlayers[Num].runes + ".png");
+                        self.playerList.push(tempPlayer);*/
+                        
+                    }
+                  })
+            
+            .catch((e) => console.log(e)); //for catching errors
+            
           // @ts-ignore
           // //@ts-ignore
           // overwolf.games.events.getInfo( result =>{
