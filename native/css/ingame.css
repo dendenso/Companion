@@ -142,15 +142,26 @@ button.logCopy:hover {
   color: #ffffff;
 }
 
+.in-game-wrapper{
+    display: flex;
+    flex-direction: row;
+  height: 725px;
+}
+
 .horizontal{
   display: flex;
   flex-direction: row;
 }
 
+.vertical{
+  display: flex;
+  flex-direction: column;  
+  justify-content: center;
+}
+
 .center-horizontal{
   display: flex;
   flex-direction: row;
-  align-items: center;
   justify-content: space-around;
   margin: 10px;
 }
@@ -164,7 +175,8 @@ button.logCopy:hover {
 }
 
 .champ-circle{
-  width: 25%;
+  width: 50px;
+  height: 50px;
   border-radius:  100%;
   border: 4px solid rgb(6, 119, 163);
   border-style: inset;
@@ -205,7 +217,9 @@ button.logCopy:hover {
 .summoner-grid{
   display: grid;
   grid-template-columns: auto auto auto auto auto;
-  width: 75%;
+  grid-gap: 10px;
+  height: 100%;
+  width: 77%;
   overflow: hidden;
   padding: 20px;
 }
@@ -216,10 +230,17 @@ button.logCopy:hover {
   align-items: center;
   background: darkcyan;
   padding: 15px;
+  height: 80%;
 }
 
 .champion-splash{
-  width: auto;
-  height: auto;
+  width: 30px;
+  height: 30px;
 }
 
+.stats-grid{
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-gap: 10px;
+  font-size: 1em;
+}
