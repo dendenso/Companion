@@ -3,62 +3,79 @@
     <h1 style="text-align: center; color: white; padding: 20px">Highlights</h1>
     <hr />
     <div class="highlights-container">
-      <div class="highlights-list">
-        <!-- for loop to go through video folders -->
-        <div v-for="folder in videoList" :key="folder.date">
-          <div class="folder-tab">
-            <h2>{{ folder.gameMode }}</h2>
-            <h3>{{ folder.date }}</h3>
-            <h3>{{ folder.time }}</h3>
-            <h3>{{ folder.gameResult }}</h3>
-            <img
-              :src="setChampion(folder)"
-              alt="champion"
-              height="100px"
-              width="100px"
-            />
-            <!-- for loop to go through videos in the folder -->
-            <div v-for="video in folder.videoList" :key="video.videoAddress">
-              <div class="video-button" @click="setVideo(video.videoAddress)">
-                <div style="width: 100%;">
-                  <div class="video-thumbnail">
-                    <img
-                      class="recent-champs"
-                      :src="video.thumbnail_url"
-                      alt="thumbnail"
-                      height="75"
-                      width="75"
-                    /> 
-                  </div>
-                  <div class="highlight-details">
-                    {{ video.highlightType }}<br>
-                    {{ video.videoStartTime }}<br>
-                    {{ video.duration }}<br>
-                    {{ video.highlight }}<br>
+      <div class="yes-highlights" v-if="true">
+        <div class="highlights-list">
+          <!-- for loop to go through video folders -->
+          <div v-for="folder in videoList" :key="folder.date">
+            <div class="folder-tab">
+              <h2>{{ folder.gameMode }}</h2>
+              <h3>{{ folder.date }}</h3>
+              <h3>{{ folder.time }}</h3>
+              <h3>{{ folder.gameResult }}</h3>
+              <img
+                :src="setChampion(folder)"
+                alt="champion"
+                height="100px"
+                width="100px"
+              />
+              <!-- for loop to go through videos in the folder -->
+              <div v-for="video in folder.videoList" :key="video.videoAddress">
+                <div class="video-button" @click="setVideo(video.videoAddress)">
+                  <div style="width: 100%">
+                    <div class="video-thumbnail">
+                      <img
+                        class="recent-champs"
+                        :src="video.thumbnail_url"
+                        alt="thumbnail"
+                        height="75"
+                        width="75"
+                      />
+                    </div>
+                    <div class="highlight-details">
+                      {{ video.highlightType }}<br />
+                      {{ video.videoStartTime }}<br />
+                      {{ video.duration }}<br />
+                      {{ video.highlight }}<br />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div>Play more to see highlights</div>
-      </div>
-      <!-- video side -->
-      <div class="video-side">
-        <!-- used :src to dynamically set video -->
-        <video
-          height="480px"
-          width="720px"
-          :src="current_Video"
-          controls
-          autoplay
-        ></video>
+        <!-- video side -->
+        <div class="video-side">
+          <!-- used :src to dynamically set video -->
+          <video
+            height="480px"
+            width="720px"
+            :src="current_Video"
+            controls
+            autoplay
+          ></video>
 
-        <div class="below-button">
-          <div v-if="checkPreviousVideo(current_Video)"><button v-on:click="getPreviousVideo(current_Video)">Previous</button></div>
+          <div class="below-button">
+            <div v-if="checkPreviousVideo(current_Video)">
+              <button v-on:click="getPreviousVideo(current_Video)">
+                Previous
+              </button>
+            </div>
 
-          <div v-if="checkNextVideo(current_Video)"><button v-on:click="getNextVideo(current_Video)">Next</button></div>
+            <div v-if="checkNextVideo(current_Video)">
+              <button v-on:click="getNextVideo(current_Video)">Next</button>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="no-highlights" v-else>
+        <h2>No Highlights Found</h2>
+        <img
+          src="https://img.icons8.com/bubbles/500/000000/google-web-search.png"
+          height="500"
+          width="500"
+        />
+
+        <h2>Try Playing Some Games</h2>
       </div>
     </div>
   </div>
@@ -110,6 +127,7 @@ class VideoFolder {
 
 @Component
 export default class Highlights extends Vue {
+  highlightsAvailable = false;
   videoList: Array<VideoFolder> = [];
   current_Video = "";
 
@@ -117,17 +135,18 @@ export default class Highlights extends Vue {
     this.current_Video = newVideo;
   }
 
-  checkNextVideo(video: string)
-  {
+  setChampion(folder: VideoFolder) {
+    return folder.championURL;
+  }
+
+  checkNextVideo(video: string) {
     var flag = false;
     // check index of video passed
     for (var i = 0; i < this.videoList.length; i++) {
       for (var j = 0; j < this.videoList[i].videoList.length; j++) {
-        if (this.videoList[i].videoList[j].videoAddress == video)
-        {
+        if (this.videoList[i].videoList[j].videoAddress == video) {
           // Make sure this isn't the last video
-          if (j != (this.videoList[i].videoList.length - 1))
-          {
+          if (j != this.videoList[i].videoList.length - 1) {
             // there is a next video
             flag = true;
           }
@@ -137,17 +156,14 @@ export default class Highlights extends Vue {
     return flag;
   }
 
-  checkPreviousVideo(video: string)
-  {
+  checkPreviousVideo(video: string) {
     var flag = false;
     // search for the current video to get
     for (var i = 0; i < this.videoList.length; i++) {
-      for (var j = (this.videoList[i].videoList.length - 1); j > 0; j--) {
-        if (this.videoList[i].videoList[j].videoAddress == video)
-        {
+      for (var j = this.videoList[i].videoList.length - 1; j > 0; j--) {
+        if (this.videoList[i].videoList[j].videoAddress == video) {
           // Make sure this isn't the first video
-          if (j != 0)
-          {
+          if (j != 0) {
             // there is a previous video
             flag = true;
           }
@@ -161,13 +177,11 @@ export default class Highlights extends Vue {
     // check index of video passed
     for (var i = 0; i < this.videoList.length; i++) {
       for (var j = 0; j < this.videoList[i].videoList.length; j++) {
-        if (this.videoList[i].videoList[j].videoAddress == video)
-        {
+        if (this.videoList[i].videoList[j].videoAddress == video) {
           // Make sure this isn't the last video
-          if (j != (this.videoList[i].videoList.length - 1))
-          {
+          if (j != this.videoList[i].videoList.length - 1) {
             // call setVideo with this next video
-            this.setVideo(this.videoList[i].videoList[j+1].videoAddress);
+            this.setVideo(this.videoList[i].videoList[j + 1].videoAddress);
           }
         }
       }
@@ -177,14 +191,12 @@ export default class Highlights extends Vue {
   getPreviousVideo(video: string) {
     // search for the current video to get
     for (var i = 0; i < this.videoList.length; i++) {
-      for (var j = (this.videoList[i].videoList.length - 1); j > 0; j--) {
-        if (this.videoList[i].videoList[j].videoAddress == video)
-        {
+      for (var j = this.videoList[i].videoList.length - 1; j > 0; j--) {
+        if (this.videoList[i].videoList[j].videoAddress == video) {
           // Make sure this isn't the first video
-          if (j != 0)
-          {
+          if (j != 0) {
             // call setVideo with this previous video
-            this.setVideo(this.videoList[i].videoList[j-1].videoAddress);
+            this.setVideo(this.videoList[i].videoList[j - 1].videoAddress);
             return true;
           }
         }
@@ -203,6 +215,13 @@ export default class Highlights extends Vue {
       matches: "match_id, match_start_time",
       videos:
         "media_url, match_id, thumbnail_url, highlight_start_time, duration, hightType",
+    });
+
+    //check if matches exist in the database
+    localDB.table("matches").count((count) => {
+      if (count != 0) {
+        this.highlightsAvailable = true;
+      }
     });
 
     //get last 5 most recent games
