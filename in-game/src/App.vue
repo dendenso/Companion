@@ -273,14 +273,12 @@ export default class App extends Vue {
 
       overwolf.games.events.onInfoUpdates2.addListener(function (info) {
         //  console.log("Info UPDATE: " + JSON.stringify(info));
-        self.infos.push(info);
       });
 
       // an event triggerd
       //@ts-ignore
 
       overwolf.games.events.onNewEvents.addListener(function (info) {
-        self.events.push(info);
         //  console.log("EVENT FIRED: " + JSON.stringify(info));
       });
     }

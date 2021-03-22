@@ -1,5 +1,6 @@
 <template>
   <div class="home-container">
+    
     <div v-if="summonerDataAvailable">
       <!-- Info that is displayed from data pullled from launcher
        img src is being dynamically set-->
@@ -144,10 +145,8 @@
     </div>
 
     <div v-else>
-      <!-- If the launcher is not running it cant display info, so this is the placeholder-->
-      <!-- TODO #8 We need to save the information pulled from the launcher so that the program
-       knows their summoner data. Whether locally or on a database, then we can have home page
-        check to see if we've already saved summoner data -->
+      <h1 style="text-align: center; color: white; padding: 20px; font-size 1.5em;">Stats</h1>
+    <hr />
       <img
         alt="League Companion"
         class="logo"
@@ -450,18 +449,24 @@ export default class Stats extends Vue {
         window.localStorage.getItem("encryptedAccountID") +
         "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
       self.summonerName = window.localStorage.getItem("localUsername");
+      await axios
+        .get(matchInfoURL)
+        .then(async (matchList) => {
+          self.getStatsFromMatchlist(matchList);
+
+        })
+        .catch((e) => console.log("Error: ", e));
 
       self.profile_icon_id_url = window.sessionStorage.getItem("iconURL");
       self.infoAvailable = true;
-
+    }
+  }
   async created() {
     // window resize
     let WindowId;
     //@ts-ignore
     overwolf.windows.getCurrentWindow(function (res) {
-      console.log(res);
       WindowId = res.window.id;
-    console.log("id: ", WindowId)
     let sizeSettings = {
         "window_id": WindowId,
         "width":500,
@@ -472,17 +477,8 @@ export default class Stats extends Vue {
       overwolf.windows.changeSize(sizeSettings ,console.log);
     });
 
-    //create variable for this
-      await axios
-        .get(matchInfoURL)
-        .then(async (matchList) => {
-          self.getStatsFromMatchlist(matchList);
-
-        })
-
-        .catch((e) => console.log("Error: ", e));
-    }
   }
+  
   
   async getStatsFromMatchlist(matchList: AxiosResponse<any>) {
     let self = this;
@@ -739,7 +735,7 @@ export default class Stats extends Vue {
     for (let i = 0; i < champions.length; i++) {
       if (champions[i].key === String(champIDs[0])) {
         (self.lastMatch.championId = champions[i].key),
-          (self.lastMatch.championName = champions[i].id);
+          (self.lastMatch.championName = champions[i].name);
         self.lastMatch.champArtURL = champions[i].icon;
 
         break;
@@ -753,7 +749,7 @@ export default class Stats extends Vue {
 
         if (champions[i].key === String(id)) {
           self.recentChampions.push(
-            new Champion(champions[i].key, champions[i].id, champions[i].icon)
+            new Champion(champions[i].key, champions[i].name, champions[i].icon)
           );
           break;
         }
@@ -772,11 +768,7 @@ export default class Stats extends Vue {
       ((self.stats.wins / matchNums) * 100).toFixed(0) + "%";
   }
 
-  async created() {
-    //create variable for this
-    let self = this;
-    //create url to call for summoner data
-  }
+  
 
   // Check if the items exist before rendering them
   get item0exists() {
@@ -820,6 +812,9 @@ export default class Stats extends Vue {
       this.lastMatch.item6 !=
       "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
     );
+   }
   }
-}
+  
+
+
 </script>

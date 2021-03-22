@@ -279,9 +279,8 @@ export default class Home extends Vue {
     let WindowId;
     //@ts-ignore
     overwolf.windows.getCurrentWindow(function (res) {
-      console.log(res);
       WindowId = res.window.id;
-    console.log("id: ", WindowId)
+
     let sizeSettings = {
         "window_id": WindowId,
         "width":500,

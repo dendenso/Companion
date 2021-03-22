@@ -12,8 +12,8 @@
               />
               <div class="vertical">
                 <div>{{ player.summonerName }}</div>
-                <div> Team {{player.team}} </div>
-                <div> {{player.championName}}</div>
+                <div>Team {{ player.team }}</div>
+                <div>{{ player.championName }}</div>
                 <div>lvl: {{ player.level }}</div>
               </div>
             </div>
@@ -71,8 +71,8 @@
       <div class="champion-column">
         <div class="center-horizontal">
           <!-- champ image and name -->
-          <img alt="Champion Icon" :srcset= "imgURL" class ="champ-circle" />
-          <!--<h1>{{ imgURL }}</h1>-->
+          <img alt="Champion Icon" :srcset="championInfo.url" class="champ-circle" />
+          <h1>{{ championInfo.champion }}</h1>
         </div>
 
         <!-- Champion tags -->
@@ -145,7 +145,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import axios from "axios";
 // @ts-ignore
-import champions from 'lol-champions'
+import champions from "lol-champions";
 import firebase from "firebase/app";
 import "firebase/database";
 
@@ -350,26 +350,26 @@ export default class Home extends Vue {
               console.log("Live client Data: ", result.data);
 
               //fill placeholder champions
-              for (let index = 0; index < 10; index++) {
+              for (let index = 0; index < result.data.allPlayers.length; index++) {
                 let tempPlayer = new Player();
 
                 tempPlayer.team = result.data.allPlayers[index].team;
-                tempPlayer.champion = result.data.allPlayers[index].championName;
+                tempPlayer.champion =
+                  result.data.allPlayers[index].championName;
 
                 //get champion image using lol-champions
                 for (let i = 0; i < champions.length; i++) {
                   if (champions[i].name === tempPlayer.champion) {
                     tempPlayer.champImgURL = champions[i].icon;
-                    tempPlayer.champIdForFirebase = champions[i].id
+                    tempPlayer.champIdForFirebase = champions[i].id;
                     break;
                   }
                 }
 
-                tempPlayer.summonerName = result.data.allPlayers[index].summonerName;
-              
+                tempPlayer.summonerName =
+                  result.data.allPlayers[index].summonerName;
 
-                //we need to use the riot api   
-                
+                //we need to use the riot api
 
                 tempPlayer.level = "118";
                 tempPlayer.winRate = "41%";
@@ -378,7 +378,7 @@ export default class Home extends Vue {
 
                 // //one keystone rune
                 // tempPlayer.keystoneRune =
-                //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName 
+                //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName
                 //   + "/" + tempPlayer.activePlayerRunes[0] + "/" + tempPlayer.activePlayerRunes[0] + ".png";
                 // /*tempPlayer.keystoneRune =
                 //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png";
@@ -411,35 +411,38 @@ export default class Home extends Vue {
                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
                 // );
 
-                self.playerList.push(tempPlayer);
-              }
-
-              //TODO Figure out how to get champion name for curent user
-              // use that where i used `info.res.summoner_info.champion` below and the code will fill the rest for you. Just uncomment 
-              if(tempName.champIdForFirebase === window.localStorage.getItem('localUsername')){
-                 // query database and print result
-                  console.log("connecting to firebase");
+                console.log("Found match to query firebase: ",tempPlayer.summonerName ===
+                  window.localStorage.getItem("localUsername"));
+                
+                if (
+                  tempPlayer.summonerName ===
+                  window.localStorage.getItem("localUsername")
+                ) {
+                  // query database and print result
+                  console.log("querying firebase with ",tempPlayer.champIdForFirebase );
                   var checkdatabase = firebase
                     .database()
-                    .ref(tempName.champIdForFirebase);
+                    .ref(tempPlayer.champIdForFirebase.charAt(0).toUpperCase() + tempPlayer.champIdForFirebase.slice(1));
                   checkdatabase.on("value", (snapshot) => {
                     console.log("returned from firebase", snapshot.val());
                     //pull some champ info
                     if (snapshot.val() != null) {
                       self.championInfo.blurb = snapshot.val().blurb;
+                      self.championInfo.url = snapshot.val().url;
+                      self.championInfo.champion = tempPlayer.champion;
                       //get skill order
                       //notice the difference in notation to access skill vs build list
                       //it's cause skill list had a space in it when it was being entered
                       for (
-                        let i = 0;
-                        i < snapshot.val()["skill list"].length;
-                        i++
+                        let i = 0; i < snapshot.val()["skill list"].length; i++
                       ) {
                         self.skillOrder.push(snapshot.val()["skill list"][i]);
                       }
 
                       //get build order
-                      for (let j = 0; j < snapshot.val().build_list.length; j++) {
+                      for (
+                        let j = 0; j < snapshot.val().build_list.length; j++
+                      ) {
                         //initialize temp
                         console.log(
                           "Logging build name: ",
@@ -463,6 +466,9 @@ export default class Home extends Vue {
                       }
                     }
                   });
+                }
+
+                self.playerList.push(tempPlayer);
               }
             })
             .catch((e) => console.log(e)); //for catching errors
