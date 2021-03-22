@@ -12,22 +12,28 @@
             <!-- for loop to go through videos in the folder -->
             <div v-for="video in folder.videoList" :key="video.videoAddress">
               <div class="video-button" @click="setVideo(video.videoAddress)">
-                {{ video.highlightType }}<br>
-                {{ video.videoStartTime }}<br>
-                {{ video.duration }}<br>
-                {{ video.highlight }}<br>
-                <img
-                  class="recent-champs"
-                  :src="video.thumbnail_url"
-                  alt="thumbnail"
-                  height="75"
-                  width="75"
-                />
+                <div style="width: 100%;">
+                  <div class="video-thumbnail">
+                    <img
+                      class="recent-champs"
+                      :src="video.thumbnail_url"
+                      alt="thumbnail"
+                      height="75"
+                      width="75"
+                    /> 
+                  </div>
+                  <div class="highlight-details">
+                    {{ video.highlightType }}<br>
+                    {{ video.videoStartTime }}<br>
+                    {{ video.duration }}<br>
+                    {{ video.highlight }}<br>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div>test</div>
+        <div>Play more to see highlights</div>
       </div>
       <!-- video side -->
       <div class="video-side">
@@ -41,9 +47,9 @@
         ></video>
 
         <div class="below-button">
-          <button>Previus</button>
+          <div v-if="checkPreviousVideo(current_Video)"><button v-on:click="getPreviousVideo(current_Video)">Previous</button></div>
 
-          <button>Next</button>
+          <div v-if="checkNextVideo(current_Video)"><button v-on:click="getNextVideo(current_Video)">Next</button></div>
         </div>
       </div>
     </div>
@@ -94,6 +100,81 @@ export default class Highlights extends Vue {
 
   setVideo(newVideo: string) {
     this.current_Video = newVideo;
+  }
+
+  checkNextVideo(video: string)
+  {
+    var flag = false;
+    // check index of video passed
+    for (var i = 0; i < this.videoList.length; i++) {
+      for (var j = 0; j < this.videoList[i].videoList.length; j++) {
+        if (this.videoList[i].videoList[j].videoAddress == video)
+        {
+          // Make sure this isn't the last video
+          if (j != (this.videoList[i].videoList.length - 1))
+          {
+            // there is a next video
+            flag = true;
+          }
+        }
+      }
+    }
+    return flag;
+  }
+
+  checkPreviousVideo(video: string)
+  {
+    var flag = false;
+    // search for the current video to get
+    for (var i = 0; i < this.videoList.length; i++) {
+      for (var j = (this.videoList[i].videoList.length - 1); j > 0; j--) {
+        if (this.videoList[i].videoList[j].videoAddress == video)
+        {
+          // Make sure this isn't the first video
+          if (j != 0)
+          {
+            // there is a previous video
+            flag = true;
+          }
+        }
+      }
+    }
+    return flag;
+  }
+
+  getNextVideo(video: string) {
+    // check index of video passed
+    for (var i = 0; i < this.videoList.length; i++) {
+      for (var j = 0; j < this.videoList[i].videoList.length; j++) {
+        if (this.videoList[i].videoList[j].videoAddress == video)
+        {
+          // Make sure this isn't the last video
+          if (j != (this.videoList[i].videoList.length - 1))
+          {
+            // call setVideo with this next video
+            this.setVideo(this.videoList[i].videoList[j+1].videoAddress);
+          }
+        }
+      }
+    }
+  }
+
+  getPreviousVideo(video: string) {
+    // search for the current video to get
+    for (var i = 0; i < this.videoList.length; i++) {
+      for (var j = (this.videoList[i].videoList.length - 1); j > 0; j--) {
+        if (this.videoList[i].videoList[j].videoAddress == video)
+        {
+          // Make sure this isn't the first video
+          if (j != 0)
+          {
+            // call setVideo with this previous video
+            this.setVideo(this.videoList[i].videoList[j-1].videoAddress);
+            return true;
+          }
+        }
+      }
+    }
   }
 
   async mounted() {
