@@ -3,7 +3,7 @@
     <ul class="nav">
       <button @click="changeTab('Home')">Home</button>
       <button @click="changeTab('Stats')">Stats</button>
-      <button @click="changeTab('Tournaments')">Tournament</button>
+      <button @click="changeTab('Highlights')">Highlights</button>
     </ul>
     <!--<p>Logo Here</p>
     <h1>(League Companion)</h1>
@@ -22,7 +22,7 @@ import Stats from "@/components/Stats";
 // @ts-ignore
 import Home from "@/components/Home";
 // @ts-ignore
-import Tournaments from "@/components/Tournaments";
+import Highlights from "@/components/Highlights";
 import firebase from "firebase/app";
 import "firebase/database";
 
@@ -30,7 +30,7 @@ import "firebase/database";
   components: {
     Stats,
     Home,
-    Tournaments,
+    Highlights,
   },
 })
 export default class App extends Vue {
@@ -41,7 +41,6 @@ export default class App extends Vue {
   }
 
   changeTab(name) {
-    console.log("Setting Value: ", name);
     this.tabsName = name;
   }
 
@@ -122,7 +121,6 @@ export default class App extends Vue {
       }
     };
     this.currWindow.dragMove(this._header);
-
    
   }
 

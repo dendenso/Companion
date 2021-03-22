@@ -34,6 +34,7 @@ import {
 } from "../../shared/constants/consts";
 import { OWHotkeys } from "../../shared/libs/ow-hotkeys";
 import { OWWindow } from "../../shared/libs/ow-window";
+import Dexie from "dexie";
 // @ts-ignore
 import InGame from "@/components/InGame"
 // @ts-ignore
@@ -69,6 +70,16 @@ export default class App extends Vue {
 
   //deals with functions of top bar buttons
   mounted() {
+    //create db with Dexie
+    var localDB = new Dexie("highlightsDB");
+    var firstHighlight = true;
+
+    localDB.version(1).stores({
+      matches: "match_id, match_start_time",
+      videos:
+        "media_url, match_id, thumbnail_url, highlight_start_time, duration, hightType",
+    });
+
     this._eventsLog = document.getElementById("eventsLog");
     this._infoLog = document.getElementById("infoLog");
 
@@ -100,26 +111,66 @@ export default class App extends Vue {
     // Auto-highlights
     // @ts-ignore
     overwolf.media.replays.onCaptureError.addListener(function (res) {
-    //  console.log("result from CaptureErrorEvent", res);
+      console.log("result from CaptureErrorEvent: ", res);
     });
 
     // @ts-ignore
     overwolf.media.replays.onCaptureStopped.addListener(function (res) {
- //     console.log("result from Capture Stopped", res);
+      console.log("result from Capture Stopped: ", res);
     });
     // @ts-ignore
     overwolf.media.replays.onCaptureWarning.addListener(function (res) {
-    //  console.log("result from Capture Warning", res);
+      console.log("result from Capture Warning: ", res);
+
     });
     // @ts-ignore
 
     overwolf.media.replays.onReplayServicesStarted.addListener(function (res) {
-      //console.log("result from onReplayServicesStarted ", res);
+      console.log("result from onReplayServicesStarted: ", res);
     });
     // @ts-ignore
 
-    overwolf.media.replays.onHighlightsCaptured.addListener(function (res) {
-   //   console.log("result from onHighlightsCaptured", res);
+    overwolf.media.replays.onHighlightsCaptured.addListener(async function (
+      res
+    ) {
+      console.log("result from onHighlightsCaptured: ", res);
+
+      let path = res.media_url.replace("replays", "videos");
+
+      if (firstHighlight) {
+        await localDB
+          .table("matches")
+          .put({
+            match_id: res.match_id,
+            match_start_time: res.match_start_time,
+          })
+          .catch((e) => console.log(e));
+        await localDB
+          .table("videos")
+          .add({
+            match_id: res.match_id,
+            media_url: path,
+            thumbnail_url: res.thumbnail_url,
+            highlight_start_time: res.start_time,
+            duration: res.duration,
+            hightType: res.events[0],
+          })
+          .catch((e) => console.log(e));
+          firstHighlight = false;
+      } else {
+        await localDB
+          .table("videos")
+          .add({
+            media_url: path,
+            match_id: res.match_id,
+            thumbnail_url: res.thumbnail_url,
+            highlight_start_time: res.start_time,
+            duration: res.duration,
+            hightType: res.events[0],
+          })
+          .catch((e) => console.log(e));
+      }
+
     });
 
     let videoSetting = {
@@ -135,7 +186,7 @@ export default class App extends Vue {
         enable: true,
       },
       quota: {
-        max_quota_gb: 2,
+        max_quota_gb: 1,
         excluded_directories: ["cool_session"], //set directories that are not part of the quota
       },
     };
@@ -185,6 +236,144 @@ export default class App extends Vue {
     //   interestingFeatures
     // );
     // this._gameEventsListener.start();
+
+    var g_interestedInFeatures = [
+      "summoner_info",
+      "gameMode",
+      "teams",
+      "matchState",
+      "kill",
+      "death",
+      "respawn",
+      "assist",
+      "minions",
+      "level",
+      "abilities",
+      "announcer",
+      "counters",
+      "match_info",
+      "damage",
+      "heal",
+      "live_client_data",
+      // 'gold'
+    ];
+
+    function registerEvents() {
+      // general events errors
+      //@ts-ignore
+      overwolf.games.events.onError.addListener(function (info) {
+        console.log("error listener");
+        console.log("Error: " + JSON.stringify(info));
+      });
+
+      // "static" data changed (total kills, username, steam-id)
+      // This will also be triggered the first time we register
+      // for events and will contain all the current information
+      //@ts-ignore
+
+      overwolf.games.events.onInfoUpdates2.addListener(function (info) {
+        //  console.log("Info UPDATE: " + JSON.stringify(info));
+        self.infos.push(info);
+      });
+
+      // an event triggerd
+      //@ts-ignore
+
+      overwolf.games.events.onNewEvents.addListener(function (info) {
+        self.events.push(info);
+        //  console.log("EVENT FIRED: " + JSON.stringify(info));
+      });
+    }
+
+    function gameLaunched(gameInfoResult) {
+      if (!gameInfoResult) {
+        return false;
+      }
+
+      if (!gameInfoResult.gameInfo) {
+        return false;
+      }
+
+      if (!gameInfoResult.runningChanged && !gameInfoResult.gameChanged) {
+        return false;
+      }
+
+      if (!gameInfoResult.gameInfo.isRunning) {
+        return false;
+      }
+
+      // NOTE: we divide by 10 to get the game class id without it's sequence number
+      if (Math.floor(gameInfoResult.gameInfo.id / 10) != 5426) {
+        return false;
+      }
+
+      console.log("LoL Launched");
+      return true;
+    }
+
+    function gameRunning(gameInfo) {
+      if (!gameInfo) {
+        return false;
+      }
+
+      if (!gameInfo.isRunning) {
+        return false;
+      }
+
+      // NOTE: we divide by 10 to get the game class id without it's sequence number
+      if (Math.floor(gameInfo.id / 10) != 5426) {
+        return false;
+      }
+
+      console.log("LoL running");
+      return true;
+    }
+
+    function setFeatures() {
+      //@ts-ignore
+
+      overwolf.games.events.setRequiredFeatures(
+        g_interestedInFeatures,
+        function (info) {
+          if (info.status == "error") {
+            //console.log("Could not set required features: " + info.reason);
+            //console.log("Trying in 2 seconds");
+            window.setTimeout(setFeatures, 2000);
+            return;
+          }
+
+          console.log("Set required features:");
+          console.log(JSON.stringify(info));
+          // //@ts-ignore
+          // overwolf.games.events.getInfo( result =>{
+          //   console.log("result",result);
+          //   self.events.push(result);
+          // })
+        }
+      );
+    }
+
+    // Start here
+    //@ts-ignore
+
+    overwolf.games.onGameInfoUpdated.addListener(function (res) {
+      if (gameLaunched(res)) {
+        registerEvents();
+        setTimeout(setFeatures, 1000);
+      }
+
+      // console.log("onGameInfoUpdated: " + JSON.stringify(res));
+    });
+
+    //@ts-ignore
+
+    overwolf.games.getRunningGameInfo(function (res) {
+      if (gameRunning(res)) {
+        registerEvents();
+        setTimeout(setFeatures, 1000);
+      }
+      //  console.log("getRunningGameInfo: " + JSON.stringify(res));
+    });
 
   }
 

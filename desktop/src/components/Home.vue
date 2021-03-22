@@ -274,6 +274,23 @@ export default class Home extends Vue {
 
   created() {
     //runs after mounted()
+    
+    // window resize
+    let WindowId;
+    //@ts-ignore
+    overwolf.windows.getCurrentWindow(function (res) {
+      console.log(res);
+      WindowId = res.window.id;
+    console.log("id: ", WindowId)
+    let sizeSettings = {
+        "window_id": WindowId,
+        "width":500,
+        "height":600,
+        "auto_dpi_resize":true //relevant only for native windows
+      };
+      //@ts-ignore
+      overwolf.windows.changeSize(sizeSettings ,console.log);
+    });
   }
 }
 </script>

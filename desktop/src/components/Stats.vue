@@ -454,7 +454,25 @@ export default class Stats extends Vue {
       self.profile_icon_id_url = window.sessionStorage.getItem("iconURL");
       self.infoAvailable = true;
 
+  async created() {
+    // window resize
+    let WindowId;
+    //@ts-ignore
+    overwolf.windows.getCurrentWindow(function (res) {
+      console.log(res);
+      WindowId = res.window.id;
+    console.log("id: ", WindowId)
+    let sizeSettings = {
+        "window_id": WindowId,
+        "width":500,
+        "height":600,
+        "auto_dpi_resize":true //relevant only for native windows
+      };
+      //@ts-ignore
+      overwolf.windows.changeSize(sizeSettings ,console.log);
+    });
 
+    //create variable for this
       await axios
         .get(matchInfoURL)
         .then(async (matchList) => {
@@ -465,6 +483,7 @@ export default class Stats extends Vue {
         .catch((e) => console.log("Error: ", e));
     }
   }
+  
   async getStatsFromMatchlist(matchList: AxiosResponse<any>) {
     let self = this;
 
