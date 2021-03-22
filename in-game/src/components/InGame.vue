@@ -1,20 +1,69 @@
 <template>
   <div>
-    <div class="horizontal" v-if="registeredYet">
+    <div class="in-game-wrapper" v-if="true">
       <div class="summoner-grid">
         <div v-for="player in playerList" :key="player.summonerName">
           <div class="summoner-profile">
-            <div>Team: {{ player.team }}</div>
-            <div>{{ player.summonerName }}</div>
-            <div>{{ player.champion }}</div>
+            <div class="horizontal">
+              <img
+                class="champ-circle"
+                :srcset="getSplashUrl(player)"
+                alt="champion splash art"
+              />
+              <div class="vertical">
+                <div>{{ player.summonerName }}</div>
+                <div> Team {{player.team}} </div>
+                <div> {{player.championName}}</div>
+                <div>lvl: {{ player.level }}</div>
+              </div>
+            </div>
 
-            <img
-              class="champion-splash"
-              :srcset="getSplashUrl(player)"
-              alt="champion splash art"
-              height="100"
-              width="400"
-            />
+            <!-- <div class="horizontal">
+              <img
+                class="champion-splash"
+                :srcset="player.keystoneRune"
+                alt="keystone"
+                height="40"
+                width="40"
+              />
+              <div v-for="runes in player.primaryRuneList" :key="runes">
+                <img
+                  class="champion-splash"
+                  :srcset="runes"
+                  alt="champion splash art"
+                  height="40"
+                  width="40"
+                />
+              </div>
+            </div>
+            <div class="horizontal">
+              <div v-for="runes in player.seconadaryRuneList" :key="runes">
+                <img
+                  class="champion-splash"
+                  :srcset="runes"
+                  alt="champion splash art"
+                  height="40"
+                  width="40"
+                />
+              </div>
+              <div v-for="shards in player.shardList" :key="shards">
+                <img
+                  class="champion-splash"
+                  :srcset="shards"
+                  alt="champion splash art"
+                  height="40"
+                  width="40"
+                />
+              </div>
+            </div> -->
+            <div class="stats-grid">
+              <div>Kill Part.</div>
+              <div>Winrate</div>
+              <div>KDA</div>
+              <div>{{ player.killParticipation }}</div>
+              <div>{{ player.winRate }}</div>
+              <div>{{ player.kda }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -22,12 +71,8 @@
       <div class="champion-column">
         <div class="center-horizontal">
           <!-- champ image and name -->
-          <img
-            alt="Champion Icon"
-            :srcset="championInfo.url"
-            class="champ-circle"
-          />
-          <h1>{{ championInfo.champion }}</h1>
+          <img alt="Champion Icon" :srcset= "imgURL" class ="champ-circle" />
+          <!--<h1>{{ imgURL }}</h1>-->
         </div>
 
         <!-- Champion tags -->
@@ -91,12 +136,16 @@
       </div>
     </div>
     <div v-else>Loading Team Data...</div>
+    <br />
+    <!--<h1> {{ imgURL}} </h1>-->
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-//import axios from "axios";
+import axios from "axios";
+// @ts-ignore
+import champions from 'lol-champions'
 import firebase from "firebase/app";
 import "firebase/database";
 
@@ -125,23 +174,27 @@ class Item {
 }
 
 class Player {
-  team: string;
-  champion: string;
-  skinId: string;
-  summonerName: string;
-  champImgURL: string;
+  public team: string;
+  public level: string;
+  public champion: string;
+  public summonerName: string;
+  public champImgURL: string;
+  public killParticipation: string;
+  public winRate: string;
+  public kda: string;
 
-  constructor(team, champion, skinID, summoner, url) {
-    this.team = team;
-    this.champion = champion;
-    this.skinId = skinID;
-    this.summonerName = summoner;
-    this.champImgURL = url;
-  }
+  public primaryRuneList: Array<string> = [];
+  public seconadaryRuneList: Array<string> = [];
+  public shardList: Array<string> = [];
+  public activePlayerRunes: Array<string> = [];
+
+  public keystoneRune: string;
+  champIdForFirebase: any;
 }
 
 @Component
 export default class Home extends Vue {
+  imgURL;
   registeredTeam = false;
   teams = "";
   summonerInfo = {
@@ -165,7 +218,7 @@ export default class Home extends Vue {
   playerList: Player[] = new Array();
 
   get registeredYet() {
-    return this.registeredTeam;
+    return true;
   }
 
   //this is for the v-for for champ images
@@ -214,11 +267,11 @@ export default class Home extends Vue {
       // This will also be triggered the first time we register
       // for events and will contain all the current information
       //@ts-ignore
-      overwolf.games.events.onInfoUpdates2.addListener(function (info) { //TODO in the case the delay doesn't work out 
-        console.log("Info UPDATE: ", info);
-        // if(info.feature = "particular string"){
-        // (info.feature = summoner info) checking USE PLAYER CLASS
-        //}
+      overwolf.games.events.onInfoUpdates2.addListener(function (info) {
+        //TODO in the case the delay doesn't work out
+        if (info.feature === "matchState") {
+          console.log("Info UPDATE: ", info);
+        }
       });
 
       // an event triggerd
@@ -271,125 +324,148 @@ export default class Home extends Vue {
       console.log("LoL running");
       return true;
     }
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
     function setFeatures() {
       //@ts-ignore
       overwolf.games.events.setRequiredFeatures(
         g_interestedInFeatures,
-        function (info) {
+        async function (info) {
           if (info.status == "error") {
             //console.log("Could not set required features: " + info.reason);
             //console.log("Trying in 2 seconds");
             window.setTimeout(setFeatures, 2000);
             return;
           }
-
           console.log("Set required features:");
           console.log(JSON.stringify(info));
-          // @ts-ignore
-          // //@ts-ignore
-          // overwolf.games.events.getInfo( result =>{
-          //   console.log("result",result);
-          //   self.events.push(result);
-          // })
-          //@ts-ignore
-          //TODO find delay here and debug or separate
-         overwolf.games.events.getInfo( async function (info) {
-            console.log("before sleep");
-            await sleep(20000);
-            console.log("after sleep 20 seconds");
-            console.log("Get Info: ", info);
+          console.log("reached outside await axios");
+          let tempName;
+          await axios
+            .get("https://127.0.0.1:2999/liveclientdata/allgamedata")
+            .then((result) => {
+              //inside then so it should produce the relevant r values
+              console.log("Live client Data: ", result.data);
 
-            if (info.status === "success") {
-              let element = info.res.game_info.teams;
-              console.log("Initial Element: ", element);
-              let decoded = decodeURI(element);
-              console.log("Decoded Element: ", decoded);
-              let final = JSON.parse(decoded);
-              console.log("JSON Element: ", final);
+              //fill placeholder champions
+              for (let index = 0; index < 10; index++) {
+                let tempPlayer = new Player();
 
-              //then add them to array of players.
-              for (let i = 0; i < final.length; i++) { //TODO for loop here
-                let temp: Player = new Player(
-                  final[i].team,
-                  final[i].champion,
-                  final[i].skinId,
-                  final[i].summoner,
-                  "http://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" +
-                    final[i].champion +
-                    ".png"
-                );
-                console.log("loading player: ", temp);
-                self.playerList.push(temp);
-                console.log("Current List: ", self.playerList);
-              }
+                tempPlayer.team = result.data.allPlayers[index].team;
+                tempPlayer.champion = result.data.allPlayers[index].championName;
 
-              //change variable so we update the template
-              self.registeredTeam = true;
-              console.log("Final List of players: ", self.playerList);
-
-              //From here on i'm filling in the champion data as well as
-              //getting basic summoner info
-
-              self.summonerInfo.accountID = info.res.summoner_info.id;
-              self.championInfo.champion = info.res.summoner_info.champion;
-              self.summonerInfo.level = info.res.summoner_info.level;
-              self.summonerInfo.tier = info.res.summoner_info.tier;
-              self.summonerInfo.queue = info.res.summoner_info.queue;
-              self.championInfo.url =
-                "http://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" +
-                info.res.summoner_info.champion +
-                ".png";
-              //query database and print result
-              console.log("connecting to firebase");
-              var checkdatabase = firebase
-                .database()
-                .ref(info.res.summoner_info.champion);
-              checkdatabase.on("value", (snapshot) => {
-                console.log("returned from firebase", snapshot.val());
-                //pull some champ info
-                if (snapshot.val() != null) {
-                  self.championInfo.blurb = snapshot.val().blurb;
-                  //get skill order
-                  //notice the difference in notation to access skill vs build list
-                  //it's cause skill list had a space in it when it was being entered
-                  for (
-                    let i = 0;
-                    i < snapshot.val()["skill list"].length;
-                    i++
-                  ) {
-                    self.skillOrder.push(snapshot.val()["skill list"][i]);
-                  }
-
-                  //get build order
-                  for (let j = 0; j < snapshot.val().build_list.length; j++) {
-                    //initialize temp
-                    console.log(
-                      "Logging build name: ",
-                      snapshot.val().build_list[j].name
-                    );
-                    console.log(
-                      "Logging build img: ",
-                      snapshot.val().build_list[j].img
-                    );
-                    let temp = new Item(
-                      snapshot.val().build_list[j].name,
-                      snapshot.val().build_list[j].img
-                    );
-                    //add it to array
-                    self.buildOrder.push(temp);
-                  }
-
-                  //get Tags
-                  for (let k = 0; k < snapshot.val().tags.length; k++) {
-                    self.tagsList.push(snapshot.val().tags[k]);
+                //get champion image using lol-champions
+                for (let i = 0; i < champions.length; i++) {
+                  if (champions[i].name === tempPlayer.champion) {
+                    tempPlayer.champImgURL = champions[i].icon;
+                    tempPlayer.champIdForFirebase = champions[i].id
+                    break;
                   }
                 }
-              });
-            }
-          });
+
+                tempPlayer.summonerName = result.data.allPlayers[index].summonerName;
+              
+
+                //we need to use the riot api   
+                
+
+                tempPlayer.level = "118";
+                tempPlayer.winRate = "41%";
+                tempPlayer.kda = "5.00";
+                tempPlayer.killParticipation = "51%";
+
+                // //one keystone rune
+                // tempPlayer.keystoneRune =
+                //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName 
+                //   + "/" + tempPlayer.activePlayerRunes[0] + "/" + tempPlayer.activePlayerRunes[0] + ".png";
+                // /*tempPlayer.keystoneRune =
+                //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png";
+                // */
+                // //3 primary runes
+                // tempPlayer.primaryRuneList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+                // );
+                // tempPlayer.primaryRuneList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+                // );
+                // tempPlayer.primaryRuneList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+                // );
+                // //2 secondary runes
+                // tempPlayer.seconadaryRuneList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+                // );
+                // tempPlayer.seconadaryRuneList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Bone_Plating_rune.png/revision/latest/scale-to-width-down/52?cb=20180209233224"
+                // );
+                // //3 shards
+                // tempPlayer.shardList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
+                // );
+                // tempPlayer.shardList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
+                // );
+                // tempPlayer.shardList.push(
+                //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
+                // );
+
+                self.playerList.push(tempPlayer);
+              }
+
+              //TODO Figure out how to get champion name for curent user
+              // use that where i used `info.res.summoner_info.champion` below and the code will fill the rest for you. Just uncomment 
+              if(tempName.champIdForFirebase === window.localStorage.getItem('localUsername')){
+                 // query database and print result
+                  console.log("connecting to firebase");
+                  var checkdatabase = firebase
+                    .database()
+                    .ref(tempName.champIdForFirebase);
+                  checkdatabase.on("value", (snapshot) => {
+                    console.log("returned from firebase", snapshot.val());
+                    //pull some champ info
+                    if (snapshot.val() != null) {
+                      self.championInfo.blurb = snapshot.val().blurb;
+                      //get skill order
+                      //notice the difference in notation to access skill vs build list
+                      //it's cause skill list had a space in it when it was being entered
+                      for (
+                        let i = 0;
+                        i < snapshot.val()["skill list"].length;
+                        i++
+                      ) {
+                        self.skillOrder.push(snapshot.val()["skill list"][i]);
+                      }
+
+                      //get build order
+                      for (let j = 0; j < snapshot.val().build_list.length; j++) {
+                        //initialize temp
+                        console.log(
+                          "Logging build name: ",
+                          snapshot.val().build_list[j].name
+                        );
+                        console.log(
+                          "Logging build img: ",
+                          snapshot.val().build_list[j].img
+                        );
+                        let temp = new Item(
+                          snapshot.val().build_list[j].name,
+                          snapshot.val().build_list[j].img
+                        );
+                        //add it to array
+                        self.buildOrder.push(temp);
+                      }
+
+                      //get Tags
+                      for (let k = 0; k < snapshot.val().tags.length; k++) {
+                        self.tagsList.push(snapshot.val().tags[k]);
+                      }
+                    }
+                  });
+              }
+            })
+            .catch((e) => console.log(e)); //for catching errors
         }
       );
     }
