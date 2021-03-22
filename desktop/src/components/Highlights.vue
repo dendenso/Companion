@@ -5,10 +5,18 @@
     <div class="highlights-container">
       <div class="highlights-list">
         <!-- for loop to go through video folders -->
-        <div v-for="folder in videoList.slice().reverse()" :key="folder.date">
+        <div v-for="folder in videoList" :key="folder.date">
           <div class="folder-tab">
-            <h2>{{ folder.date }}</h2>
+            <h2>{{ folder.gameMode }}</h2>
+            <h3>{{ folder.date }}</h3>
             <h3>{{ folder.time }}</h3>
+            <h3>{{ folder.gameResult }}</h3>
+            <img
+              :src="setChampion(folder)"
+              alt="champion"
+              height="100px"
+              width="100px"
+            />
             <!-- for loop to go through videos in the folder -->
             <div v-for="video in folder.videoList" :key="video.videoAddress">
               <div class="video-button" @click="setVideo(video.videoAddress)">
@@ -59,6 +67,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Dexie from "dexie";
+import axios from "axios";
+// @ts-ignore
+import champions from "lol-champions";
 
 //this class represents a video inside a folder
 class Video {
@@ -72,6 +83,10 @@ class Video {
 //this class represents a folder
 class VideoFolder {
   //if we query match id with riot we can probabyly get matchtype and champion used
+  public gameMode: string; //regular/aram/practice
+  public championURL: string;
+  public gameResult: string; //regular/aram/practice
+
   public gameType: string; //regular/aram/practice
   public champion: string; //url of champion img
 
@@ -219,7 +234,69 @@ export default class Highlights extends Vue {
 
       //create new match
       let tempFolder = new VideoFolder();
+      console.log(
+        "Calling: ",
+        "https://na1.api.riotgames.com/lol/match/v4/matches/" +
+          recentGames[index].match_id +
+          "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
+      );
+      await axios
+        .get(
+          "https://na1.api.riotgames.com/lol/match/v4/matches/" +
+            recentGames[index].match_id +
+            "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
+        )
+        .then((result) => {
+          console.log("result of riot call: ", result);
+          //get game mode
+          tempFolder.gameMode = result.data.gameMode;
+          console.log("gamemode: ", tempFolder.gameMode);
+          //find identity of out user from array;
 
+          if (result.data.participantIdentities.length === 10) {
+            for (let k = 0; k < result.data.participantIdentities.length; k++) {
+              //if participant identity matches namev in local storage
+              //if participant identities dont exist then it was a practice game
+
+              if (
+                result.data.participantIdentities[k].player.summonerName ===
+                window.localStorage.getItem("localUsername")
+              ) {
+                //get game outcome
+                if (result.data.participants[k].stats.win === true) {
+                  tempFolder.gameResult = "Victory";
+                } else {
+                  tempFolder.gameResult = "Defeat";
+                }
+
+                //get champion used
+                for (let l = 0; l < champions.length; l++) {
+                  if (
+                    champions[l].key ===
+                    String(result.data.participants[k].championId)
+                  ) {
+                    tempFolder.championURL = champions[l].icon;
+                    break;
+                  }
+                }
+
+                break;
+              }
+            }
+          } else {
+            tempFolder.gameResult = "Win";
+            //get champion used
+            for (let l = 0; l < champions.length; l++) {
+              if (
+                champions[l].key ===
+                String(result.data.participants[0].championId)
+              ) {
+                tempFolder.championURL = champions[l].icon;
+                break;
+              }
+            }
+          }
+        });
       //set date and time from the database
       tempFolder.setDate(match_date.toDateString());
       tempFolder.setTime(match_date.toLocaleTimeString());
@@ -241,13 +318,15 @@ export default class Highlights extends Vue {
         // console.log("highlight_start_time: ", new Date  (videosInMatch[urls].highlight_start_time).toLocaleTimeString());
         // console.log("hightType: ", videosInMatch[urls].hightType.charAt(0).toUpperCase() + videosInMatch[urls].hightType.slice(1)); //make first letter uppercase
         // console.log("media_url: ", videosInMatch[urls].media_url);
-        // console.log("thumbnail_url: ",videosInMatch[urls].thumbnail_url); 
-        if(!setFirstVideo){
+        // console.log("thumbnail_url: ",videosInMatch[urls].thumbnail_url);
+        if (!setFirstVideo) {
           self.current_Video = videosInMatch[urls].media_url;
           setFirstVideo = true;
         }
         tempVideo.videoAddress = videosInMatch[urls].media_url;
-        tempVideo.videoStartTime = new Date  (videosInMatch[urls].highlight_start_time).toLocaleTimeString();
+        tempVideo.videoStartTime = new Date(
+          videosInMatch[urls].highlight_start_time
+        ).toLocaleTimeString();
         tempVideo.duration =
           new Date(videosInMatch[urls].duration).getSeconds() + "s";
         tempVideo.highlightType =
@@ -261,15 +340,13 @@ export default class Highlights extends Vue {
       self.videoList.push(tempFolder);
     }
 
-
     //after this all the data is being displayed
     //but now we need to delete the older games, so they dont pollute the database
     //loop through older games and use game id's to delete data
     //@ts-ignore
     for (let index = 0; index < olderGames.length; index++) {
-
       //get all the videos with matching ids
-       let olderVideos = await localDB
+      let olderVideos = await localDB
         .table("videos")
         .where("match_id")
         .equals(olderGames[index].match_id)
@@ -289,9 +366,12 @@ export default class Highlights extends Vue {
       localDB
         .table("videos")
         .where("match_id")
-        .equals(recentGames[index].match_id).delete().then( (deleteCount) => {
-        console.log("Deleted older highlights videos: ", deleteCount);
-      }).catch( e=> console.log(e));
+        .equals(recentGames[index].match_id)
+        .delete()
+        .then((deleteCount) => {
+          console.log("Deleted older highlights videos: ", deleteCount);
+        })
+        .catch((e) => console.log(e));
     }
 
     //get all other games
@@ -299,16 +379,13 @@ export default class Highlights extends Vue {
       .table("matches")
       .orderBy("match_start_time")
       .reverse()
-      .offset(5).delete()
-      .then( (deleteCount) => {
-        console.log("Deleted old match data", deleteCount)
+      .offset(5)
+      .delete()
+      .then((deleteCount) => {
+        console.log("Deleted old match data", deleteCount);
       })
       .catch((e) => console.log(e));
-
-
   }
-
-  
 
   created() {
     // window resize
