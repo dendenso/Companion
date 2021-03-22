@@ -12,6 +12,8 @@
               />
               <div class="vertical">
                 <div>{{ player.summonerName }}</div>
+                <div> Team {{player.team}} </div>
+                <div> {{player.championName}}</div>
                 <div>lvl: {{ player.level }}</div>
               </div>
             </div>
@@ -69,7 +71,7 @@
       <div class="champion-column">
         <div class="center-horizontal">
           <!-- champ image and name -->
-          <img alt="Champion Icon" :srcset="imgURL" class="champ-circle" />
+          <img alt="Champion Icon" :srcset= "imgURL" class ="champ-circle" />
           <!--<h1>{{ imgURL }}</h1>-->
         </div>
 
@@ -182,6 +184,7 @@ class Player {
   public primaryRuneList: Array<string> = [];
   public seconadaryRuneList: Array<string> = [];
   public shardList: Array<string> = [];
+  public activePlayerRunes: Array<string> = [];
 
   public keystoneRune: string;
 }
@@ -344,14 +347,20 @@ export default class Home extends Vue {
               console.log("Live client Data: ", result.data);
 
               //fill placeholder champions
-              for (let index = 0; index < 10; index++) {
+              for (let index = 0; index < 9; index++) {
                 let tempPlayer = new Player();
 
-                tempPlayer.team = "Order";
-                tempPlayer.champion = "Ezreal";
-                tempPlayer.summonerName = "Summoner Name";
+                tempPlayer.activePlayerRunes.push(result.data.activePlayer.fullRunes.generalRunes[0].displayName)
+                tempPlayer.activePlayerRunes.push(result.data.activePlayer.fullRunes.generalRunes[1].displayName)
+                tempPlayer.activePlayerRunes.push(result.data.activePlayer.fullRunes.generalRunes[2].displayName)
+                tempPlayer.activePlayerRunes.push(result.data.activePlayer.fullRunes.generalRunes[3].displayName)
+                tempPlayer.activePlayerRunes.push(result.data.activePlayer.fullRunes.generalRunes[4].displayName)
+                tempPlayer.activePlayerRunes.push(result.data.activePlayer.fullRunes.generalRunes[5].displayName)
+                tempPlayer.team = result.data.allPlayers[index].team;
+                tempPlayer.champion = result.data.allPlayers[index].championName;
+                tempPlayer.summonerName = result.data.allPlayers[index].summonerName;
                 tempPlayer.champImgURL =
-                  "https://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/Ezreal.png";
+                  "https://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" + tempPlayer.champion + ".png";
 
                 tempPlayer.level = "118";
                 tempPlayer.winRate = "41%";
@@ -360,8 +369,11 @@ export default class Home extends Vue {
 
                 //one keystone rune
                 tempPlayer.keystoneRune =
+                  "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName 
+                  + "/" + tempPlayer.activePlayerRunes[0] + "/" + tempPlayer.activePlayerRunes[0] + ".png";
+                /*tempPlayer.keystoneRune =
                   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png";
-
+*/
                 //3 primary runes
                 tempPlayer.primaryRuneList.push(
                   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
