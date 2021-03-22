@@ -40,7 +40,7 @@
     "hotkeys": {
       "sample_app_showhide": {
         "title": "Show/Hide In-Game Window",
-        "action-type": "toggle",
+        "action-type": "custom",
         "default": "Ctrl+F"
       }
     },
@@ -67,21 +67,24 @@
           "top": -250,
           "left": -100
         }
+
       },
       "in_game": {
         "file": "windows/in-game/index.html",
         "in_game_only": true,
         "focus_game_takeover": "ReleaseOnHidden",
+        "focus_game_takeover_release_hotkey": "sample_app_showhide",
         "transparent": true,
         "resizable": true,
         "size": {
-          "width": 800,
+          "width": 1450,
           "height": 800
         },
         "start_position": {
           "top": -250,
           "left": -100
         }
+  
       }
     },
     "protocol_override_domains": { "googlesyndication": "http" },
@@ -101,7 +104,8 @@
         "https://www.facebook.com",
         "https://www.reddit.com",
         "http://ddragon.leagueoflegends.com",
-        "https://na1.api.riotgames.com"
+        "https://na1.api.riotgames.com",
+        "​https://127.0.0.1:2999/"
       ]
     },
     "force_browser": "user",

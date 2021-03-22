@@ -125,12 +125,18 @@
       </div>
 
       <div class="stats-overall">
-        <u class ="little-bigger">Recent Champions</u><br />
+        <u class="little-bigger">Recent Champions</u><br />
         <div class="wrap">
           <div v-for="champion in recentChampions" :key="champion.id">
-          <div class="col-recent-champ">
-            <img class="recent-champs" :srcset="getChampURL(champion)" alt="champion" height="50" width="50">
-            {{champion.name}}
+            <div class="col-recent-champ">
+              <img
+                class="recent-champs"
+                :srcset="getChampURL(champion)"
+                alt="champion"
+                height="50"
+                width="50"
+              />
+              {{ champion.name }}
             </div>
           </div>
         </div>
@@ -156,7 +162,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 // @ts-ignore
 import spells from "lol-spells";
 // @ts-ignore
@@ -249,127 +255,204 @@ export default class Stats extends Vue {
   }
 
   //this is for the v-for for champ images
-  getChampURL( champ:Champion){
-    console.log("champ", champ)
+  getChampURL(champ: Champion) {
+    console.log("champ", champ);
     return champ.url;
   }
 
   //This page will use the same launcher info as before
   //TODO: #9 Send User info between desktop components from home menu rather than use overwolf launcher API. will speed things up
   //connect to overwolf API to gain user data
-  mounted() {
+  async mounted() {
     let self = this;
 
-    //register event listeners
-    function registerEvents() {
-      // general events errors
-      // @ts-ignore
-      overwolf.games.events.onError.addListener(function (info) {
-        console.log("Error: " + JSON.stringify(info));
-      });
+    //if we havent presaved the accountID then we need to set listeners
+    if (window.localStorage.getItem("encryptedAccountID") === null) {
+      //register event listeners
+      function registerEvents() {
+        // general events errors
+        // @ts-ignore
+        overwolf.games.events.onError.addListener(function (info) {
+          console.log("Error: " + JSON.stringify(info));
+        });
 
-      // "static" data changed
-      // This will also be triggered the first time we register
-      // for events and will contain all the current information
-      // @ts-ignore
-      overwolf.games.launchers.events.onInfoUpdates.addListener(function (
-        info
-      ) {
-        console.log("Info UPDATE: " + JSON.stringify(info));
-      });
+        // "static" data changed
+        // This will also be triggered the first time we register
+        // for events and will contain all the current information
+        // @ts-ignore
+        overwolf.games.launchers.events.onInfoUpdates.addListener(function (
+          info
+        ) {
+          console.log("Info UPDATE: " + JSON.stringify(info));
+        });
 
-      // an event triggered
-      // @ts-ignore
-      overwolf.games.launchers.events.onNewEvents.addListener(function (info) {
-        console.log("EVENT FIRED: " + JSON.stringify(info));
-      });
-    }
+        // an event triggered
+        // @ts-ignore
+        overwolf.games.launchers.events.onNewEvents.addListener(function (
+          info
+        ) {
+          console.log("EVENT FIRED: " + JSON.stringify(info));
+        });
+      }
 
-    function setFeatures() {
-      // @ts-ignore
-      overwolf.games.launchers.events.setRequiredFeatures(
-        10902,
-        [
-          "game_flow",
-          "summoner_info",
-          "champ_select",
-          "lcu_info",
-          "lobby_info",
-          "end_game",
-          "game_info",
-        ],
-        function (info) {
-          if (info.status == "error") {
-            console.log("Could not set required features: " + info.reason);
-            console.log("Trying in 2 seconds");
-            window.setTimeout(setFeatures, 2000);
-            return;
-          }
-
-          console.log(JSON.stringify(info));
-
-          // @ts-ignore
-          overwolf.games.launchers.events.getInfo(10902, function (info) {
-            if (info.status === "success") {
-              console.log("Summoner Info", info.res.summoner_info.display_name);
-
-              //filling in data from what the launcher recieves
-              self.summoner_info = info.res.summoner_info;
-
-              //FOR TESTING PURPOSES
-              //self.summonerName = self.summoner_info.display_name;
-              //   self.profile_icon_id_url =
-              //     "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/" +
-              //     self.summoner_info.profile_icon_id +
-              //     ".png";
-              self.summonerLevel = self.summoner_info.summoner_level;
-
-              self.infoAvailable = true;
+      function setFeatures() {
+        // @ts-ignore
+        overwolf.games.launchers.events.setRequiredFeatures(
+          10902,
+          [
+            "game_flow",
+            "summoner_info",
+            "champ_select",
+            "lcu_info",
+            "lobby_info",
+            "end_game",
+            "game_info",
+          ],
+          function (info) {
+            if (info.status == "error") {
+              console.log("Could not set required features: " + info.reason);
+              console.log("Trying in 2 seconds");
+              window.setTimeout(setFeatures, 2000);
+              return;
             }
-          });
+
+            // @ts-ignore
+            overwolf.games.launchers.events.getInfo(
+              10902,
+              async function (info) {
+                if (info.status === "success") {
+                  console.log(
+                    "Summoner Info",
+                    info.res.summoner_info.display_name
+                  );
+
+                  //filling in data from what the launcher recieves
+                  self.summoner_info = info.res.summoner_info;
+
+                  self.summonerName = self.summoner_info.display_name;
+                  self.profile_icon_id_url =
+                    "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/profileicon/" +
+                    self.summoner_info.profile_icon_id +
+                    ".png";
+                  self.summonerLevel = self.summoner_info.summoner_level;
+
+                  self.infoAvailable = true;
+
+                  //save things in local storage
+                  window.sessionStorage.setItem(
+                    "sessionUsername",
+                    self.summonerName
+                  );
+                  window.sessionStorage.setItem(
+                    "iconURL",
+                    self.profile_icon_id_url
+                  );
+                  window.sessionStorage.setItem(
+                    "summonerLevel",
+                    self.summonerLevel
+                  );
+                  window.localStorage.setItem(
+                    "localUsername",
+                    self.summonerName
+                  );
+                  window.localStorage.setItem(
+                    "encryptedAccountID",
+                    self.summoner_info.account_id
+                  );
+
+                  let summonerInfoURL =
+                    "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
+                    self.summonerName +
+                    "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+                  //ACCOUNTID >> MATCHLIST >> LAST MATCH DATA
+                  console.log(
+                    "SummonerName being queried: ",
+                    self.summonerName
+                  );
+
+                  //Use axios to call API and get summoner info
+                  //ACCOUNT ID
+                  await axios
+                    .get(summonerInfoURL)
+                    .then(async (summonerInfo) => {
+                      //Save encrypted summoner data
+                      console.log("Summoner API CALL RESPONCE: ", summonerInfo);
+
+                      self.encypted_summoner_id = summonerInfo.data.id;
+                      self.encypted_account_id = summonerInfo.data.accountId;
+                      //MATCHLIST
+                      //use axios to get a matchlist from RIOT API
+                      console.log(
+                        "Matchlist queried using encrypted summoner Id: ",
+                        self.encypted_account_id
+                      );
+                      let matchInfoURL =
+                        "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
+                        self.encypted_account_id +
+                        "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+
+                      //Nested Axios Call to recieve data from most recent match and enter it in last match
+                      await axios
+                        .get(matchInfoURL)
+                        .then(async (matchList) => {
+                          self.getStatsFromMatchlist(matchList);
+                        })
+                        .catch((e) => console.log("Error: ", e));
+                    })
+                    .catch((e) => console.log("Error: ", e));
+                }
+              }
+            );
+          }
+        );
+      }
+
+      function launcherRunning(launcherInfo) {
+        if (!launcherInfo) {
+          return false;
         }
-      );
-    }
 
-    function launcherRunning(launcherInfo) {
-      if (!launcherInfo) {
-        return false;
+        if (!launcherInfo.launchers[0]) {
+          return false;
+        }
+
+        // NOTE: we divide by 10 to get the launcher class id without it's sequence number
+        if (Math.floor(launcherInfo.launchers[0].id / 10) != 10902) {
+          return false;
+        }
+
+        console.log("League of Legends launcher running");
+        return true;
       }
-
-      if (!launcherInfo.launchers[0]) {
-        return false;
-      }
-
-      // NOTE: we divide by 10 to get the launcher class id without it's sequence number
-      if (Math.floor(launcherInfo.launchers[0].id / 10) != 10902) {
-        return false;
-      }
-
-      console.log("League of Legends launcher running");
-      return true;
-    }
-
-    //create starting listeners
-    // @ts-ignore
-    overwolf.games.launchers.onLaunched.addListener(function () {
-      registerEvents();
-      setTimeout(setFeatures, 1000);
-      console.log("onLaunched fired");
-    });
-    // @ts-ignore
-    overwolf.games.launchers.getRunningLaunchersInfo(function (res) {
-      if (launcherRunning(res)) {
+      //create starting listeners
+      // @ts-ignore
+      overwolf.games.launchers.onLaunched.addListener(function () {
         registerEvents();
         setTimeout(setFeatures, 1000);
-      }
-      console.log("getRunningLaunchersInfo: " + JSON.stringify(res));
-    });
+        console.log("onLaunched fired");
+      });
+      // @ts-ignore
+      overwolf.games.launchers.getRunningLaunchersInfo(function (res) {
+        if (launcherRunning(res)) {
+          registerEvents();
+          setTimeout(setFeatures, 1000);
+        }
+        console.log("getRunningLaunchersInfo: " + JSON.stringify(res));
+      });
+      // @ts-ignore
+      overwolf.games.launchers.onTerminated.addListener(function (res) {
+        setTimeout(window.close, 1000);
+      });
+    } else {
+      //we already have the accountId saved So we don't need to set listeners
+      let matchInfoURL =
+        "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
+        window.localStorage.getItem("encryptedAccountID") +
+        "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+      self.summonerName = window.localStorage.getItem("localUsername");
 
-    // @ts-ignore
-    overwolf.games.launchers.onTerminated.addListener(function (res) {
-      setTimeout(window.close, 1000);
-    });
-  }
+      self.profile_icon_id_url = window.sessionStorage.getItem("iconURL");
+      self.infoAvailable = true;
 
   async created() {
     // window resize
@@ -390,358 +473,309 @@ export default class Stats extends Vue {
     });
 
     //create variable for this
+      await axios
+        .get(matchInfoURL)
+        .then(async (matchList) => {
+          self.getStatsFromMatchlist(matchList);
+
+        })
+
+        .catch((e) => console.log("Error: ", e));
+    }
+  }
+  
+  async getStatsFromMatchlist(matchList: AxiosResponse<any>) {
+    let self = this;
+
+    var matchNums = 15;
+    if (matchList.data.totalGames < 15) {
+      matchNums = matchList.data.totalGames;
+    }
+    var killcount = 0;
+    var deathcount = 0;
+    var assistCount = 0;
+
+    //arrays to count roles, queues, and champions
+    var roleCount: string[] = new Array();
+    var queueCount: number[] = new Array();
+    var champIDs: number[] = new Array();
+
+    //go through 15 matches to build stats profile.
+    for (let imatch = 0; imatch < matchNums; imatch++) {
+      //collect individual match data
+      //add first match data if no other matches added yet
+      //adding roles
+      if (roleCount.length === 0) {
+        roleCount.push(matchList.data.matches[imatch].role);
+        console.log("adding first role: ", matchList.data.matches[imatch].role);
+      } else {
+        if (!roleCount.includes(matchList.data.matches[imatch].role)) {
+          roleCount.push(matchList.data.matches[imatch].role);
+          console.log("adding new  role", matchList.data.matches[imatch].role);
+        }
+      }
+
+      //adding queues
+      if (queueCount.length === 0) {
+        console.log(
+          "adding first queue: ",
+          matchList.data.matches[imatch].queue
+        );
+        queueCount.push(matchList.data.matches[imatch].queue);
+      } else {
+        if (!queueCount.includes(matchList.data.matches[imatch].queue)) {
+          queueCount.push(matchList.data.matches[imatch].queue);
+          console.log(
+            "adding new  queue",
+            matchList.data.matches[imatch].queue
+          );
+        }
+      }
+
+      //adding champ data
+      if (champIDs.length === 0) {
+        champIDs.push(matchList.data.matches[imatch].champion);
+      } else {
+        if (!champIDs.includes(matchList.data.matches[imatch].champion)) {
+          champIDs.push(matchList.data.matches[imatch].champion);
+          console.log(
+            "adding new  champion",
+            matchList.data.matches[imatch].champion
+          );
+        }
+      }
+
+      console.log("Axios for match: ", imatch);
+      //call API for each match
+      await axios
+        .get(
+          "https://na1.api.riotgames.com/lol/match/v4/matches/" +
+            matchList.data.matches[imatch].gameId +
+            "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
+        )
+        .then(async (mostRecentMatch) => {
+          //assigning most recent match data to display by parsing the json
+
+          console.log(mostRecentMatch.data);
+          //setting basic game data for recent match
+          //if i === 0, then this is the most recent match data
+          if (imatch === 0) {
+            self.lastMatch.gameMode = mostRecentMatch.data.gameMode;
+            let date = new Date(mostRecentMatch.data.gameCreation);
+
+            self.lastMatch.gameCreation =
+              date.getMonth() +
+              " / " +
+              date.getDay() +
+              " / " +
+              date.getFullYear();
+            self.lastMatch.gameDuration =
+              new Date(mostRecentMatch.data.gameDuration * 1000)
+                .getMinutes()
+                .toLocaleString() + " min";
+          }
+
+          /*Search through participant identities to find the correct data*/
+          for (let i = 0; i < 10; i++) {
+            //if correct summoner is found fill data
+            if (
+              self.summonerName ===
+              mostRecentMatch.data.participantIdentities[i].player.summonerName
+            ) {
+              if (mostRecentMatch.data.participants[i].stats.win === true) {
+                self.stats.wins = self.stats.wins + 1;
+                console.log("Self.stats.wins++", self.stats.wins);
+                if (imatch === 0) {
+                  self.lastMatch.win = "Victory";
+                }
+              } else {
+                self.stats.losses = self.stats.losses + 1;
+                console.log("Self.stats.losses++", self.stats.losses);
+
+                if (imatch === 0) {
+                  self.lastMatch.win = "Defeat";
+                }
+              }
+              //if last match then save it as image to be displayed at the top
+              if (imatch === 0) {
+                self.lastMatch.championId =
+                  mostRecentMatch.data.participants[i].championId;
+                //need to add it/ instatiate array
+              } else {
+                //add champions to champion array to display
+              }
+
+              //if match index === 0 store item info from most recent match
+              if (imatch === 0) {
+                //item info
+                //base item url http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/{{ItemNumber}}.png
+                self.lastMatch.item0 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item0 +
+                  ".png";
+
+                self.lastMatch.item1 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item1 +
+                  ".png";
+                self.lastMatch.item2 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item2 +
+                  ".png";
+                self.lastMatch.item3 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item3 +
+                  ".png";
+                self.lastMatch.item4 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item4 +
+                  ".png";
+                self.lastMatch.item5 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item5 +
+                  ".png";
+                self.lastMatch.item6 =
+                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
+                  mostRecentMatch.data.participants[i].stats.item6 +
+                  ".png";
+              }
+
+              //KDA
+              killcount += mostRecentMatch.data.participants[i].stats.kills;
+              if (imatch === 0) {
+                self.lastMatch.kills =
+                  mostRecentMatch.data.participants[i].stats.kills;
+              }
+
+              deathcount += mostRecentMatch.data.participants[i].stats.deaths;
+
+              if (imatch === 0) {
+                self.lastMatch.deaths =
+                  mostRecentMatch.data.participants[i].stats.deaths;
+              }
+
+              assistCount += mostRecentMatch.data.participants[i].stats.assists;
+
+              if (imatch === 0) {
+                self.lastMatch.assists =
+                  mostRecentMatch.data.participants[i].stats.assists;
+              }
+
+              //calculate Kill/death ratio
+              //these are only relevant to most recent match
+              if (imatch === 0) {
+                self.lastMatch.kda = (
+                  (self.lastMatch.kills + self.lastMatch.assists) /
+                  self.lastMatch.deaths
+                ).toFixed(2);
+                //need an if to get the right string here
+                if (
+                  mostRecentMatch.data.participants[i].stats
+                    .largestMultiKill === 2
+                ) {
+                  self.lastMatch.largestMultiKill = "Double Kill";
+                } else if (
+                  mostRecentMatch.data.participants[i].stats
+                    .largestMultiKill === 3
+                ) {
+                  self.lastMatch.largestMultiKill = "Triple Kill";
+                } else if (
+                  mostRecentMatch.data.participants[i].stats
+                    .largestMultiKill === 4
+                ) {
+                  self.lastMatch.largestMultiKill = "QuadraKil";
+                } else if (
+                  mostRecentMatch.data.participants[i].stats
+                    .largestMultiKill === 5
+                ) {
+                  self.lastMatch.largestMultiKill = "Penta Kill";
+                } else if (
+                  mostRecentMatch.data.participants[i].stats
+                    .largestMultiKill === 6
+                ) {
+                  self.lastMatch.largestMultiKill = "Hexa Kill";
+                } else {
+                  self.lastMatch.largestMultiKill = "";
+                }
+
+                self.lastMatch.champLevel =
+                  mostRecentMatch.data.participants[i].stats.champLevel;
+
+                self.lastMatch.totalMinionsKilled =
+                  mostRecentMatch.data.participants[i].stats.totalMinionsKilled;
+
+                // Find the spells by spell id - using the lol spells package for this.
+                // spell info
+                // http://ddragon.leagueoflegends.com/cdn/11.2.1/img/spell/{{spellname}}.png
+                self.lastMatch.spell1Id =
+                  mostRecentMatch.data.participants[i].spell1Id;
+                self.lastMatch.spell2Id =
+                  mostRecentMatch.data.participants[i].spell2Id;
+
+                for (let i = 0; i < spells.length; i++) {
+                  //check for spell 1
+                  if (spells[i].key === String(self.lastMatch.spell1Id)) {
+                    self.lastMatch.spell1Icon = spells[i].icon;
+                  } //check for spell 2
+                  else if (spells[i].key === String(self.lastMatch.spell2Id)) {
+                    self.lastMatch.spell2Icon = spells[i].icon;
+                  }
+                }
+              }
+
+              break;
+            }
+          }
+        })
+
+        //Below i'm just logging any errors from this axios calls
+        .catch((e) => console.log("Error: ", e));
+    }
+
+    console.log("Async thread complete !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+    //using champion id's to enter data for array of images
+    //get most recent match data
+    for (let i = 0; i < champions.length; i++) {
+      if (champions[i].key === String(champIDs[0])) {
+        (self.lastMatch.championId = champions[i].key),
+          (self.lastMatch.championName = champions[i].id);
+        self.lastMatch.champArtURL = champions[i].icon;
+
+        break;
+      }
+    }
+
+    champIDs.forEach((id) => {
+      console.log(id);
+      for (let i = 0; i < champions.length; i++) {
+        //if id and key matches then initialize data and end loop
+
+        if (champions[i].key === String(id)) {
+          self.recentChampions.push(
+            new Champion(champions[i].key, champions[i].id, champions[i].icon)
+          );
+          break;
+        }
+      }
+    });
+
+    //after the for loop through match list
+    //calculate averages
+    self.stats.avg_Kills = (killcount / matchNums).toFixed(2);
+    self.stats.avg_Death = (deathcount / matchNums).toFixed(2);
+    self.stats.avg_assists = (assistCount / matchNums).toFixed(2);
+    self.stats.diff_Roles = roleCount.length;
+    self.stats.diff_Queues = queueCount.length;
+    self.stats.diff_Champions = champIDs.length;
+    self.stats.win_Rate =
+      ((self.stats.wins / matchNums) * 100).toFixed(0) + "%";
+  }
+
+  async created() {
+    //create variable for this
     let self = this;
     //create url to call for summoner data
-    let summonerInfoURL =
-      "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
-      self.summonerName +
-      "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
-    //ACCOUNTID >> MATCHLIST >> LAST MATCH DATA
-    console.log("SummonerName being queried: ", self.summonerName);
-
-    //Use axios to call API and get summoner info
-    //ACCOUNT ID
-    await axios
-      .get(summonerInfoURL)
-      .then(async (summonerInfo) => {
-        //Save encrypted summoner data
-        console.log("Summoner API CALL RESPONCE: ", summonerInfo);
-
-        self.encypted_summoner_id = summonerInfo.data.id;
-        self.encypted_account_id = summonerInfo.data.accountId;
-        //MATCHLIST
-        //use axios to get a matchlist from RIOT API
-        console.log(
-          "Matchlist queried using encrypted summoner Id: ",
-          self.encypted_account_id
-        );
-        let matchInfoURL =
-          "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
-          self.encypted_account_id +
-          "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
-
-        //Nested Axios Call to recieve data from most recent match and enter it in last match
-        await axios
-          .get(matchInfoURL)
-          .then(async (matchList) => {
-
-            var matchNums = 15;
-            if (matchList.data.totalGames < 15) {
-              matchNums = matchList.data.totalGames;
-            }
-            var killcount = 0;
-            var deathcount = 0;
-            var assistCount = 0;
-
-            //arrays to count roles, queues, and champions
-            var roleCount: string[] = new Array();
-            var queueCount: number[] = new Array();
-            var champIDs: number[] = new Array();
-
-            //go through 15 matches to build stats profile.
-            for (let imatch = 0; imatch < matchNums; imatch++) {
-              //collect individual match data
-              //add first match data if no other matches added yet
-              //adding roles
-              if (roleCount.length === 0) {
-                roleCount.push(matchList.data.matches[imatch].role);
-                console.log(
-                  "adding first role: ",
-                  matchList.data.matches[imatch].role
-                );
-              } else {
-                if (!roleCount.includes(matchList.data.matches[imatch].role)) {
-                  roleCount.push(matchList.data.matches[imatch].role);
-                  console.log(
-                    "adding new  role",
-                    matchList.data.matches[imatch].role
-                  );
-                }
-              }
-
-              //adding queues
-              if (queueCount.length === 0) {
-                console.log(
-                  "adding first queue: ",
-                  matchList.data.matches[imatch].queue
-                );
-                queueCount.push(matchList.data.matches[imatch].queue);
-              } else {
-                if (
-                  !queueCount.includes(matchList.data.matches[imatch].queue)
-                ) {
-                  queueCount.push(matchList.data.matches[imatch].queue);
-                  console.log(
-                    "adding new  queue",
-                    matchList.data.matches[imatch].queue
-                  );
-                }
-              }
-
-              //adding champ data
-              if (champIDs.length === 0) {
-                champIDs.push(matchList.data.matches[imatch].champion);
-              } else {
-                if (
-                  !champIDs.includes(matchList.data.matches[imatch].champion)
-                ) {
-                  champIDs.push(matchList.data.matches[imatch].champion);
-                  console.log(
-                    "adding new  champion",
-                    matchList.data.matches[imatch].champion
-                  );
-                }
-              }
-
-              console.log("Axios for match: ", imatch);
-              //call API for each match
-              await axios
-                .get(
-                  "https://na1.api.riotgames.com/lol/match/v4/matches/" +
-                    matchList.data.matches[imatch].gameId +
-                    "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
-                )
-                .then(async (mostRecentMatch) => {
-                  //assigning most recent match data to display by parsing the json
-
-                  console.log(mostRecentMatch.data);
-                  //setting basic game data for recent match
-                  //if i === 0, then this is the most recent match data
-                  if (imatch === 0) {
-                    self.lastMatch.gameMode = mostRecentMatch.data.gameMode;
-                    let date = new Date(mostRecentMatch.data.gameCreation);
-
-                    self.lastMatch.gameCreation =
-                      date.getMonth() +
-                      " / " +
-                      date.getDay() +
-                      " / " +
-                      date.getFullYear();
-                    self.lastMatch.gameDuration =
-                      new Date(mostRecentMatch.data.gameDuration * 1000)
-                        .getMinutes()
-                        .toLocaleString() + " min";
-                  }
-
-                  /*Search through participant identities to find the correct data*/
-                  for (let i = 0; i < 10; i++) {
-                    //if correct summoner is found fill data
-                    if (
-                      self.summonerName ===
-                      mostRecentMatch.data.participantIdentities[i].player
-                        .summonerName
-                    ) {
-                      if (
-                        mostRecentMatch.data.participants[i].stats.win === true
-                      ) {
-                        self.stats.wins = self.stats.wins + 1;
-                        console.log("Self.stats.wins++", self.stats.wins);
-                        if (imatch === 0) {
-                          self.lastMatch.win = "Victory";
-                        }
-                      } else {
-                        self.stats.losses = self.stats.losses + 1;
-                        console.log("Self.stats.losses++", self.stats.losses);
-
-                        if (imatch === 0) {
-                          self.lastMatch.win = "Defeat";
-                        }
-                      }
-                      //if last match then save it as image to be displayed at the top
-                      if (imatch === 0) {
-                        self.lastMatch.championId =
-                          mostRecentMatch.data.participants[i].championId;
-                        //need to add it/ instatiate array
-                      } else {
-                        //add champions to champion array to display
-                      }
-
-                      //if match index === 0 store item info from most recent match
-                      if (imatch === 0) {
-                        //item info
-                        //base item url http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/{{ItemNumber}}.png
-                        self.lastMatch.item0 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item0 +
-                          ".png";
-
-                        self.lastMatch.item1 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item1 +
-                          ".png";
-                        self.lastMatch.item2 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item2 +
-                          ".png";
-                        self.lastMatch.item3 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item3 +
-                          ".png";
-                        self.lastMatch.item4 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item4 +
-                          ".png";
-                        self.lastMatch.item5 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item5 +
-                          ".png";
-                        self.lastMatch.item6 =
-                          "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                          mostRecentMatch.data.participants[i].stats.item6 +
-                          ".png";
-                      }
-
-                      //KDA
-                      killcount +=
-                        mostRecentMatch.data.participants[i].stats.kills;
-                      if (imatch === 0) {
-                        self.lastMatch.kills =
-                          mostRecentMatch.data.participants[i].stats.kills;
-                      }
-
-                      deathcount +=
-                        mostRecentMatch.data.participants[i].stats.deaths;
-
-                      if (imatch === 0) {
-                        self.lastMatch.deaths =
-                          mostRecentMatch.data.participants[i].stats.deaths;
-                      }
-
-                      assistCount +=
-                        mostRecentMatch.data.participants[i].stats.assists;
-
-                      if (imatch === 0) {
-                        self.lastMatch.assists =
-                          mostRecentMatch.data.participants[i].stats.assists;
-                      }
-
-                      //calculate Kill/death ratio
-                      //these are only relevant to most recent match
-                      if (imatch === 0) {
-                        self.lastMatch.kda = (
-                          (self.lastMatch.kills + self.lastMatch.assists) /
-                          self.lastMatch.deaths
-                        ).toFixed(2);
-                        //need an if to get the right string here
-                        if (
-                          mostRecentMatch.data.participants[i].stats
-                            .largestMultiKill === 2
-                        ) {
-                          self.lastMatch.largestMultiKill = "Double Kill";
-                        } else if (
-                          mostRecentMatch.data.participants[i].stats
-                            .largestMultiKill === 3
-                        ) {
-                          self.lastMatch.largestMultiKill = "Triple Kill";
-                        } else if (
-                          mostRecentMatch.data.participants[i].stats
-                            .largestMultiKill === 4
-                        ) {
-                          self.lastMatch.largestMultiKill = "QuadraKil";
-                        } else if (
-                          mostRecentMatch.data.participants[i].stats
-                            .largestMultiKill === 5
-                        ) {
-                          self.lastMatch.largestMultiKill = "Penta Kill";
-                        } else if (
-                          mostRecentMatch.data.participants[i].stats
-                            .largestMultiKill === 6
-                        ) {
-                          self.lastMatch.largestMultiKill = "Hexa Kill";
-                        } else {
-                          self.lastMatch.largestMultiKill = "";
-                        }
-
-                        self.lastMatch.champLevel =
-                          mostRecentMatch.data.participants[i].stats.champLevel;
-
-                        self.lastMatch.totalMinionsKilled =
-                          mostRecentMatch.data.participants[
-                            i
-                          ].stats.totalMinionsKilled;
-
-                        // Find the spells by spell id - using the lol spells package for this.
-                        // spell info
-                        // http://ddragon.leagueoflegends.com/cdn/11.2.1/img/spell/{{spellname}}.png
-                        self.lastMatch.spell1Id =
-                          mostRecentMatch.data.participants[i].spell1Id;
-                        self.lastMatch.spell2Id =
-                          mostRecentMatch.data.participants[i].spell2Id;
-
-                        for (let i = 0; i < spells.length; i++) {
-                          //check for spell 1
-                          if (
-                            spells[i].key === String(self.lastMatch.spell1Id)
-                          ) {
-                            self.lastMatch.spell1Icon = spells[i].icon;
-                          } //check for spell 2
-                          else if (
-                            spells[i].key === String(self.lastMatch.spell2Id)
-                          ) {
-                            self.lastMatch.spell2Icon = spells[i].icon;
-                          }
-                        }
-                      }
-                    
-                      break;
-                    }
-                  }
-                })
-
-                //Below i'm just logging any errors from this axios calls
-                .catch((e) => console.log("Error: ", e));
-            }
-
-            console.log(
-              "Async thread complete !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            );
-
-            //using champion id's to enter data for array of images
-            //get most recent match data
-            for (let i = 0; i < champions.length; i++) {
-              if (champions[i].key === String(champIDs[0])) {
-                (self.lastMatch.championId = champions[i].key),
-                  (self.lastMatch.championName = champions[i].id);
-                self.lastMatch.champArtURL = champions[i].icon;
-
-                break;
-              }
-            }
-
-            
-            champIDs.forEach((id) => {
-              console.log(id);
-              for (let i = 0; i < champions.length; i++) {
-                //if id and key matches then initialize data and end loop
-
-                if (champions[i].key === String(id)) {
-                  self.recentChampions.push(
-                    new Champion(
-                      champions[i].key,
-                      champions[i].id,
-                      champions[i].icon
-                    )
-                  );
-                  break;
-                }
-              }
-            });
-
-            //after the for loop through match list
-            //calculate averages
-            self.stats.avg_Kills = (killcount / matchNums).toFixed(2);
-            self.stats.avg_Death = (deathcount / matchNums).toFixed(2);
-            self.stats.avg_assists = (assistCount / matchNums).toFixed(2);
-            self.stats.diff_Roles = roleCount.length;
-            self.stats.diff_Queues = queueCount.length;
-            self.stats.diff_Champions = champIDs.length;
-            self.stats.win_Rate =
-              ((self.stats.wins / matchNums) * 100).toFixed(0) + "%";
-          })
-
-          .catch((e) => console.log("Error: ", e));
-      })
-      .catch((e) => console.log("Error: ", e));
   }
 
   // Check if the items exist before rendering them

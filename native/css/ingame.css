@@ -9,6 +9,8 @@ body {
   flex-direction: column;
   font-size: 14px;
   min-height: 100vh;
+  color: aliceblue;
+  overflow: hidden;
 }
 
 main {
@@ -22,7 +24,6 @@ h1 {
   font-family: "Roboto Mono";
   font-style: normal;
   font-weight: normal;
-  font-size: 18px;
   color: #d5d5d5;
 }
 
@@ -139,4 +140,107 @@ button.logCopy {
 button.logCopy:hover {
   background: #8d8d8d;
   color: #ffffff;
+}
+
+.in-game-wrapper{
+    display: flex;
+    flex-direction: row;
+  height: 725px;
+}
+
+.horizontal{
+  display: flex;
+  flex-direction: row;
+}
+
+.vertical{
+  display: flex;
+  flex-direction: column;  
+  justify-content: center;
+}
+
+.center-horizontal{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  margin: 10px;
+}
+
+.champion-column{
+  display: flex;
+  flex-direction: column;
+  width: 25%;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.champ-circle{
+  width: 50px;
+  height: 50px;
+  border-radius:  100%;
+  border: 4px solid rgb(6, 119, 163);
+  border-style: inset;
+}
+
+.champ-tag{
+  display: inline-flex;
+  padding: 5px;
+  border-radius: 15px;
+  border-width:thick;
+  border: darkcyan;
+  background: rgb(35, 117, 117);
+}
+
+.tag-box{
+  display: flex;
+  flex-direction:row;
+  flex-wrap: wrap;
+  padding: 5px;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.skill-grid{
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto auto auto auto auto auto auto auto auto auto auto auto;
+  grid-row: auto auto auto auto;
+  column-gap: 5px;
+  text-align: center;
+}
+
+.grid-item{
+  background: crimson;
+  padding: 2px;
+}
+
+
+.summoner-grid{
+  display: grid;
+  grid-template-columns: auto auto auto auto auto;
+  grid-gap: 10px;
+  height: 100%;
+  width: 77%;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.summoner-profile{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: darkcyan;
+  padding: 15px;
+  height: 80%;
+}
+
+.champion-splash{
+  width: 30px;
+  height: 30px;
+}
+
+.stats-grid{
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-gap: 10px;
+  font-size: 1em;
 }

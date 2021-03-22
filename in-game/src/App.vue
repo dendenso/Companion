@@ -1,6 +1,9 @@
 <template>
-  <div id="logs">
-    <div id="events" class="logColumn">
+  <div>
+       <InGame />
+     <!--  This is the original code  
+  <div class="logs">
+   <div id="events" class="logColumn">
       <h1>Game Events</h1>
       <div id="eventsLog" class="dataText">
         <p v-for="event in events" :key="event">
@@ -17,22 +20,8 @@
         </p>
       </div>
       <button id="copyInfo" class="logCopy">COPY INFO UPDATES</button>
-    </div>
+    </div> -->
   </div>
-  <!--        <div id="other">-->
-  <!--            <h1>Real time Game Data</h1>-->
-  <!--            <p id="infoParagraph">-->
-  <!--                The background controller of this app is listening to all the game-->
-  <!--                events and info updates, and sends them to this window, that prints-->
-  <!--                them to the screen. Some specific events (startMatch, Kill and Death)-->
-  <!--                are painted in <span style="color: #00DEFA">teal</span> and logged to-->
-  <!--                the developers console.-->
-  <!--            </p>-->
-  <!--            <div id="ad"></div>-->
-  <!--            <p id="sampleAdText">-->
-  <!--                This is a sample ad (400x300px) of the best size-->
-  <!--            </p>-->
-  <!--        </div>-->
 </template>
 
 <script lang="ts">
@@ -47,9 +36,15 @@ import { OWHotkeys } from "../../shared/libs/ow-hotkeys";
 import { OWWindow } from "../../shared/libs/ow-window";
 import Dexie from "dexie";
 // @ts-ignore
+import InGame from "@/components/InGame"
+// @ts-ignore
 let WindowState = overwolf.windows.WindowState;
 
-@Component
+@Component({
+  components: {
+    InGame
+  },
+})
 export default class App extends Vue {
   private _gameEventsListener: OWGamesEvents;
   private _eventsLog: HTMLElement;
@@ -126,6 +121,7 @@ export default class App extends Vue {
     // @ts-ignore
     overwolf.media.replays.onCaptureWarning.addListener(function (res) {
       console.log("result from Capture Warning: ", res);
+
     });
     // @ts-ignore
 
@@ -174,6 +170,7 @@ export default class App extends Vue {
           })
           .catch((e) => console.log(e));
       }
+
     });
 
     let videoSetting = {
@@ -217,7 +214,7 @@ export default class App extends Vue {
   }
 
   public created() {
-    let self = this;
+    
     // Background window:
     this._backgroundWindow = new OWWindow("background");
     this.currWindow = new OWWindow("in_game");
@@ -377,6 +374,7 @@ export default class App extends Vue {
       }
       //  console.log("getRunningGameInfo: " + JSON.stringify(res));
     });
+
   }
 
   private onInfoUpdates(info) {
@@ -390,26 +388,43 @@ export default class App extends Vue {
 
   // Displays the toggle minimize/restore hotkey in the window header
   private async setToggleHotkeyText() {
+    let self = this;
     // const hotkeyText = await OWHotkeys.getHotkeyText(hotkeys.toggle);
 
     //@ts-ignore
     overwolf.settings.hotkeys.get((e) => {
-      console.log("hotkey data", e.games["5426"]);
+     // console.log("hotkey data", e.games["5426"]);
+      console.log("Getting Hotkey: ", e);
       const hotkeyElem = document.getElementById("hotkey");
       //@ts-ignore
       hotkeyElem.textContent = e.games["5426"]["0"]["binding"];
-
+      
       //@ts-ignore
-      overwolf.settings.hotkeys.OnPressedEvent.addListener(function (res) {
-        console.log("hotkey pressed", res);
-      });
+      overwolf.settings.hotkeys.onPressed.addListener(async function (info) {
+        console.log("Hotkey Pressed Info: ", info);
+        const inGameState = await self.getWindowState();
+
+          if (
+            inGameState.window_state === "normal" ||
+            inGameState.window_state === "maximized"
+          ) {
+            self.currWindow.minimize();
+          } else if (
+            inGameState.window_state === "minimized" ||
+            inGameState.window_state === "closed"
+          ) {
+            self.currWindow.restore();
+          }
+          });
+
     });
   }
 
   // Sets toggleInGameWindow as the behavior for the Ctrl+F hotkey
   private async setToggleHotkeyBehavior() {
+    console.log("Setting Hotkey behavior.")
     const toggleInGameWindow = async (hotkeyResult) => {
-      console.log(`pressed hotkey for ${hotkeyResult.featureId}`);
+      console.log("toggleInGameWindow", hotkeyResult);
       const inGameState = await this.getWindowState();
 
       if (
@@ -425,8 +440,8 @@ export default class App extends Vue {
       }
     };
 
-    OWHotkeys.onHotkeyDown(hotkeys.toggle, toggleInGameWindow);
   }
+
   public async getWindowState() {
     return await this.currWindow.getWindowState();
   }

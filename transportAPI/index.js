@@ -1,6 +1,9 @@
 // Entry Point of the API Server  
   
 const express = require('express'); 
+const cors = require('cors');
+const port = 5432;
+const morgan = require('morgan');
   
 /* Creates an Express application.  
    The express() function is a top-level  
@@ -26,7 +29,15 @@ const pool = new Pool({
 const bodyParser = require('body-parser'); 
 app.use(bodyParser.json()) 
 app.use(bodyParser.urlencoded({ extended: false })); 
-  
+app.use(cors());
+app.use(morgan('testString'));
+
+app.get('/',(req,res) => {
+    res.json('this is test response')
+});
+app.listen(port, () => {
+    console.log('listening on ${port}');
+});
   
 pool.connect((err, client, release) => { 
     if (err) { 
@@ -53,9 +64,9 @@ app.get('/testdata', (req, res, next) => {
 }) 
   
 // Require the Routes API   
-// Create a Server and run it on the port 3000 
+/* Create a Server and run it on the port 5432
 const server = app.listen(5432, function () { 
     let host = server.address().address 
     let port = server.address().port 
-    // Starting the Server at the port 3000 
-}) 
+    // Starting the Server at the port 5432
+})*/ 
