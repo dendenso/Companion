@@ -8,35 +8,35 @@
           <!-- for loop to go through video folders -->
           <div v-for="folder in videoList" :key="folder.date">
             <div class="folder-tab">
-              <h2>{{ folder.gameMode }}</h2>
-              <h3>{{ folder.date }}</h3>
-              <h3>{{ folder.time }}</h3>
-              <h3>{{ folder.gameResult }}</h3>
-              <img
-                :src="setChampion(folder)"
-                alt="champion"
-                height="100px"
-                width="100px"
-              />
+              <div class="foldertab-menu">
+                <img
+                  :src="setChampion(folder)"
+                  alt="champion"
+                  height="100px"
+                  width="100px"
+                />
+                <div class="vertical">
+                  <h2>{{ folder.gameMode }}</h2>
+                  <h3>{{ folder.date }}</h3>
+                  <h3>{{ folder.time }}</h3>
+                </div>
+
+                <h3 class="result">{{ folder.gameResult }}</h3>
+              </div>
               <!-- for loop to go through videos in the folder -->
               <div v-for="video in folder.videoList" :key="video.videoAddress">
                 <div class="video-button" @click="setVideo(video.videoAddress)">
-                  <div style="width: 100%">
-                    <div class="video-thumbnail">
-                      <img
-                        class="recent-champs"
-                        :src="video.thumbnail_url"
-                        alt="thumbnail"
-                        height="75"
-                        width="75"
-                      />
-                    </div>
-                    <div class="highlight-details">
-                      {{ video.highlightType }}<br />
-                      {{ video.videoStartTime }}<br />
-                      {{ video.duration }}<br />
-                      {{ video.highlight }}<br />
-                    </div>
+                  <img
+                    class="video-thumbnail"
+                    :src="video.thumbnail_url"
+                    alt="thumbnail"
+                    height="75"
+                    width="75"
+                  />
+                  <h2>{{ video.highlightType }}</h2>
+                  <div class="highlight-details">
+                    {{ video.videoStartTime }}<br />
+                    {{ video.duration }}<br />
                   </div>
                 </div>
               </div>
@@ -56,13 +56,21 @@
 
           <div class="below-button">
             <div v-if="checkPreviousVideo(current_Video)">
-              <button v-on:click="getPreviousVideo(current_Video)">
+              <button
+                class="video-button-below"
+                v-on:click="getPreviousVideo(current_Video)"
+              >
                 Previous
               </button>
             </div>
 
             <div v-if="checkNextVideo(current_Video)">
-              <button v-on:click="getNextVideo(current_Video)">Next</button>
+              <button
+                class="video-button-below"
+                v-on:click="getNextVideo(current_Video)"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

@@ -325,20 +325,26 @@ html {background-color:rgb(0, 46, 59);
 }
 
 .video-button{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
   background: #006989;
   margin: 5px;
   color: aliceblue;
   text-align: center;
   width: 100%;
-  height: 85px;
+  height: 75px;
   border-radius: 25px;
 }
 
 .video-thumbnail {
-  width: 50%;
-  top: 50%;
-  float: left;
+  width: 70px;
+  height: 70px;
+  border-radius: 25px;
 }
+
+
 
 .highlight-details {
   margin-top: 5%;
@@ -366,7 +372,7 @@ html {background-color:rgb(0, 46, 59);
   align-items: baseline;
 }
 
-button{
+.video-button-below{
   padding: 10px;
   font-size: 1.3em;
   border-radius: 25px;
@@ -390,4 +396,45 @@ button{
   display: flex;
   flex-direction: row;
   width: 1600px;
+}
+
+.foldertab-menu{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+
+.foldertab-menu img{
+  border-radius: 50px;
+  width: 60px;
+  height: 60px;
+  margin-left: 20px;
+
+}
+
+
+.foldertab-menu h3{
+  margin: 1px;
+  font-size: 0.8em;
+  margin-left: 15px;
+}
+
+.foldertab-menu h2{
+  margin: 5px;
+  margin-left: 15px;
+
+}
+
+
+
+.vertical{
+  display: flex;
+  flex-direction: column;  
+}
+
+.result{
+  font-size: 1.5em !important;
+  margin-left: auto !important;
+  margin-right: 5px;
 }
