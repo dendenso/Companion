@@ -372,3 +372,22 @@ button{
   border-radius: 25px;
 }
 
+.no-highlights{
+  display: flex;
+  width: 1600px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.yes-highlights{
+  color: white;
+  margin: 0;
+  padding:  auto 15px;
+  font-family: 'Lato', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  flex-direction: row;
+  width: 1600px;
+}
