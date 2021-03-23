@@ -71,7 +71,7 @@
       <div class="champion-column">
         <div class="center-horizontal">
           <!-- champ image and name -->
-          <img alt="Champion Icon" :srcset="championInfo.url" class="champ-circle" />
+          <img alt="Champion Icon" :srcset="imgURL" class="champ-circle" />
           <h1>{{ championInfo.champion }}</h1>
         </div>
 
@@ -336,6 +336,7 @@ export default class Home extends Vue {
           if (info.status == "error") {
             //console.log("Could not set required features: " + info.reason);
             //console.log("Trying in 2 seconds");
+            sleep(350);
             window.setTimeout(setFeatures, 2000);
             return;
           }
@@ -348,7 +349,8 @@ export default class Home extends Vue {
             .then((result) => {
               //inside then so it should produce the relevant r values
               console.log("Live client Data: ", result.data);
-
+              self.imgURL = ("https://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" + 
+              result.data.allPlayers[0].championName + ".png");
               //fill placeholder champions
               for (let index = 0; index < result.data.allPlayers.length; index++) {
                 let tempPlayer = new Player();
