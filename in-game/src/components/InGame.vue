@@ -324,6 +324,7 @@ export default class Home extends Vue {
       console.log("LoL running");
       return true;
     }
+
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -336,7 +337,7 @@ export default class Home extends Vue {
           if (info.status == "error") {
             //console.log("Could not set required features: " + info.reason);
             //console.log("Trying in 2 seconds");
-            sleep(350);
+            await sleep(3000);
             window.setTimeout(setFeatures, 2000);
             return;
           }

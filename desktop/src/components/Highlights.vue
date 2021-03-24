@@ -311,7 +311,7 @@ export default class Highlights extends Vue {
               }
             }
           } else {
-            tempFolder.gameResult = "Win";
+            tempFolder.gameResult = "Victory";
             //get champion used
             for (let l = 0; l < champions.length; l++) {
               if (
