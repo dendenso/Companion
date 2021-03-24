@@ -71,7 +71,7 @@
       <div class="champion-column">
         <div class="center-horizontal">
           <!-- champ image and name -->
-          <img alt="Champion Icon" :srcset="imgURL" class="champ-circle" />
+          <img alt="Champion Icon" :srcset="championInfo.url" class="champ-circle" />
           <h1>{{ championInfo.champion }}</h1>
         </div>
 
