@@ -18,7 +18,7 @@
               </div>
             </div>
 
-            <!-- <div class="horizontal">
+            <div class="horizontal">
               <img
                 class="champion-splash"
                 :srcset="player.keystoneRune"
@@ -55,7 +55,7 @@
                   width="40"
                 />
               </div>
-            </div> -->
+            </div>
             <div class="stats-grid">
               <div>Kill Part.</div>
               <div>Winrate</div>
@@ -71,7 +71,11 @@
       <div class="champion-column">
         <div class="center-horizontal">
           <!-- champ image and name -->
-          <img alt="Champion Icon" :srcset="championInfo.url" class="champ-circle" />
+          <img
+            alt="Champion Icon"
+            :srcset="championInfo.url"
+            class="champ-circle"
+          />
           <h1>{{ championInfo.champion }}</h1>
         </div>
 
@@ -328,7 +332,7 @@ export default class Home extends Vue {
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
-      let tempPlayer = new Player();
+    let tempPlayer = new Player();
     function setFeatures() {
       //@ts-ignore
       overwolf.games.events.setRequiredFeatures(
@@ -344,137 +348,6 @@ export default class Home extends Vue {
           console.log("Set required features:");
           console.log(JSON.stringify(info));
           self.getRunes();
-          await axios
-            .get("https://127.0.0.1:2999/liveclientdata/allgamedata")
-            .then((result) => {
-              //inside then so it should produce the relevant r values
-              console.log("Live client Data: ", result.data);
-              self.imgURL = ("https://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" + 
-              result.data.allPlayers[0].championName + ".png");
-              //fill placeholder champions
-              for (let index = 0; index < result.data.allPlayers.length; index++) {
-                let tempPlayer = new Player();
-
-                tempPlayer.team = result.data.allPlayers[index].team;
-                tempPlayer.champion =
-                  result.data.allPlayers[index].championName;
-
-                //get champion image using lol-champions
-                for (let i = 0; i < champions.length; i++) {
-                  if (champions[i].name === tempPlayer.champion) {
-                    tempPlayer.champImgURL = champions[i].icon;
-                    tempPlayer.champIdForFirebase = champions[i].id;
-                    break;
-                  }
-                }
-                tempPlayer.summonerName =
-                  result.data.allPlayers[index].summonerName;
-
-                //we need to use the riot api
-                
-                tempPlayer.level = result.data.allPlayers[index].level;
-                console.log("level found ",tempPlayer.level);
-                tempPlayer.winRate = "41%";
-                var tempkda = ( result.data.allPlayers[index].scores.kills)/(result.data.allPlayers[index].scores.deaths);
-                tempPlayer.kda = tempkda.toString();
-                console.log("kda ",tempPlayer.kda);
-                tempPlayer.killParticipation = result.data.allPlayers[index].scores.assists;
-                // //one keystone rune
-                // tempPlayer.keystoneRune =
-                //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName
-                //   + "/" + tempPlayer.activePlayerRunes[0] + "/" + tempPlayer.activePlayerRunes[0] + ".png";
-                // /*tempPlayer.keystoneRune =
-                //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png";
-                // */
-                // //3 primary runes
-                // tempPlayer.primaryRuneList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
-                // );
-                // tempPlayer.primaryRuneList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
-                // );
-                // tempPlayer.primaryRuneList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
-                // );
-                // //2 secondary runes
-                // tempPlayer.seconadaryRuneList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
-                // );
-                // tempPlayer.seconadaryRuneList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Bone_Plating_rune.png/revision/latest/scale-to-width-down/52?cb=20180209233224"
-                // );
-                // //3 shards
-                // tempPlayer.shardList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
-                // );
-                // tempPlayer.shardList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
-                // );
-                // tempPlayer.shardList.push(
-                //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
-                // );
-
-                console.log("Found match to query firebase: ",tempPlayer.summonerName ===
-                  window.localStorage.getItem("localUsername"));
-                
-                if (
-                  tempPlayer.summonerName ===
-                  window.localStorage.getItem("localUsername")
-                ) {
-                  // query database and print result
-                  console.log("querying firebase with ",tempPlayer.champIdForFirebase );
-                  var checkdatabase = firebase
-                    .database()
-                    .ref(tempPlayer.champIdForFirebase.charAt(0).toUpperCase() + tempPlayer.champIdForFirebase.slice(1));
-                  checkdatabase.on("value", (snapshot) => {
-                    console.log("returned from firebase", snapshot.val());
-                    //pull some champ info
-                    if (snapshot.val() != null) {
-                      self.championInfo.blurb = snapshot.val().blurb;
-                      self.championInfo.url = snapshot.val().url;
-                      self.championInfo.champion = tempPlayer.champion;
-                      //get skill order
-                      //notice the difference in notation to access skill vs build list
-                      //it's cause skill list had a space in it when it was being entered
-                      for (
-                        let i = 0; i < snapshot.val()["skill list"].length; i++
-                      ) {
-                        self.skillOrder.push(snapshot.val()["skill list"][i]);
-                      }
-
-                      //get build order
-                      for (
-                        let j = 0; j < snapshot.val().build_list.length; j++
-                      ) {
-                        //initialize temp
-                        console.log(
-                          "Logging build name: ",
-                          snapshot.val().build_list[j].name
-                        );
-                        console.log(
-                          "Logging build img: ",
-                          snapshot.val().build_list[j].img
-                        );
-                        let temp = new Item(
-                          snapshot.val().build_list[j].name,
-                          snapshot.val().build_list[j].img
-                        );
-                        //add it to array
-                        self.buildOrder.push(temp);
-                      }
-
-                      //get Tags
-                      for (let k = 0; k < snapshot.val().tags.length; k++) {
-                        self.tagsList.push(snapshot.val().tags[k]);
-                      }
-                    }
-                  });
-                }
-                self.playerList.push(tempPlayer);
-              }
-            })
-            .catch((e) => console.log(e)); //for catching errors
-             
         }
       );
     }
@@ -500,27 +373,217 @@ export default class Home extends Vue {
       //   console.log("getRunningGameInfo: " + JSON.stringify(res));
     });
   }
-  async getRunes(){
-    console.log("summonersaved", this.playerList);
-  let summonerURL =  "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
-                    window.localStorage.getItem("localUsername") +
-                    "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";// this gets id,accountid,and puuid
-    //let encryptedAccountID;
-    await axios
-    .get(summonerURL)
-    .then(async(sumInfo) => {
-      //encryptedAccountID = sumInfo.data.accountId;
-    
-    await axios
-   .get("https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" +
-   sumInfo.data.id + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9")
-   .then(async(accInfo) => {
-     console.log("accInfo",accInfo); 
-    for(let num = 0; 8 < num;num++) {
-//tempPlayer.primaryRuneList[num] = accInfo.data.perks.perkIds[num];//using spectatorv-4 api
-    }
+  async getRunes() {
+    let self = this;
+    //build url to call for summoner data
+    let summonerURL =
+      "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
+      window.localStorage.getItem("localUsername") +
+      "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"; // this gets id,accountid,and puuid
+    //use id to call spectator api
+    await axios.get(summonerURL).then(async (sumInfo) => {
+      await axios
+        .get(
+          "https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" +
+            sumInfo.data.id +
+            "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
+        )
+        .then(async (accInfo) => {
+          console.log("accInfo", accInfo);
+          //for loop to go through the participants
+          for (let num = 0; num < accInfo.data.participants.length; num++) {
+            //each participant is a player in our player array
+            let participant = new Player();
+
+            //as we fill this participants info we will also be filling data displayed in the vue
+            participant.team = accInfo.data.participants[num].teamId;
+            participant.summonerName =
+              accInfo.data.participants[num].summonerName;
+
+            //loop through the participants runes
+            for (
+              let i = 0;
+              i < accInfo.data.participants[num].perks.perkIds.length;
+              i++
+            ) {
+              //call firebase for rune info
+              var checkdatabase = firebase
+                .database()
+                .ref(accInfo.data.participants[num].perks.perkIds[i]);
+              checkdatabase.on("value", (snapshot) => {
+                console.log("returned from firebase for Rune", snapshot.val());
+                if (snapshot.val() != null) {
+                  //check if keystone rune
+                  if (i == 0) {
+                    //add to keystone since it's not an array
+                    participant.keystoneRune = snapshot.val().img;
+                  } else if (i < 4) {
+                      participant.primaryRuneList.push(snapshot.val().img)
+                  } else if (i < 6) {
+                      participant.seconadaryRuneList.push(snapshot.val().img)
+                  } else {
+                     participant.shardList.push(snapshot.val().img)                  }
+                }
+              });
+            }
+
+            //make api call for this participants stats
+            //call riot api on summoner name
+            //fill in participant.level
+            //call matchlist api for list of matches
+            //call each match and build stats for player
+
+            //get champion image using lol-champions
+            for (let i = 0; i < champions.length; i++) {
+              if (
+                champions[i].key === String(accInfo.data.participants[num].championId)
+              ) {
+                participant.champion = champions.name;
+                participant.champImgURL = champions[i].icon;
+                participant.champIdForFirebase = champions[i].id;
+                break;
+              }
+            }
+
+            //if participant is current user
+            //then add the champ 
+            if (
+              participant.summonerName ===
+              window.localStorage.getItem("localUsername")
+            ) {
+              // query database and print result
+              console.log(
+                "querying firebase with champion:  ",
+                participant.champIdForFirebase
+              );
+              var checkdatabase = firebase
+                .database()
+                .ref(
+                  participant.champIdForFirebase.charAt(0).toUpperCase() +
+                    participant.champIdForFirebase.slice(1)
+                );
+              checkdatabase.on("value", (snapshot) => {
+                console.log("returned from firebase when calling for champion info", snapshot.val());
+                //pull some champ info
+                if (snapshot.val() != null) {
+                  self.championInfo.blurb = snapshot.val().blurb;
+                  self.championInfo.url = snapshot.val().url;
+                  self.championInfo.champion = participant.champion;
+                  //get skill order
+                  //notice the difference in notation to access skill vs build list
+                  //it's cause skill list had a space in it when it was being entered
+                  for (
+                    let i = 0;
+                    i < snapshot.val()["skill list"].length;
+                    i++
+                  ) {
+                    self.skillOrder.push(snapshot.val()["skill list"][i]);
+                  }
+
+                  //get build order
+                  for (let j = 0; j < snapshot.val().build_list.length; j++) {
+                    //initialize temp
+                    console.log(
+                      "Logging build name: ",
+                      snapshot.val().build_list[j].name
+                    );
+                    console.log(
+                      "Logging build img: ",
+                      snapshot.val().build_list[j].img
+                    );
+                    let temp = new Item(
+                      snapshot.val().build_list[j].name,
+                      snapshot.val().build_list[j].img
+                    );
+                    //add it to array
+                    self.buildOrder.push(temp);
+                  }
+
+                  //get Tags
+                  for (let k = 0; k < snapshot.val().tags.length; k++) {
+                    self.tagsList.push(snapshot.val().tags[k]);
+                  }
+                }
+              });
+            }
+
+            //add participant to player list
+            self.playerList.push(participant);
+          }
+        });
     });
-  });
-}
+  }
+
+  // await axios
+  //             .get("https://127.0.0.1:2999/liveclientdata/allgamedata")
+  //             .then((result) => {
+  //               //inside then so it should produce the relevant r values
+  //               console.log("Live client Data: ", result.data);
+  //               self.imgURL = ("https://ddragon.leagueoflegends.com/cdn/11.4.1/img/champion/" +
+  //               result.data.allPlayers[0].championName + ".png");
+  //               //fill placeholder champions
+  //               for (let index = 0; index < result.data.allPlayers.length; index++) {
+  //                 let tempPlayer = new Player();
+
+  //                 tempPlayer.team = result.data.allPlayers[index].team;
+  //                 tempPlayer.champion =
+  //                   result.data.allPlayers[index].championName;
+
+  //
+  //                 tempPlayer.summonerName =
+  //                   result.data.allPlayers[index].summonerName;
+
+  //                 //we need to use the riot api
+
+  //                 tempPlayer.level = result.data.allPlayers[index].level;
+  //                 console.log("level found ",tempPlayer.level);
+  //                 tempPlayer.winRate = "41%";
+  //                 var tempkda = ( result.data.allPlayers[index].scores.kills)/(result.data.allPlayers[index].scores.deaths);
+  //                 tempPlayer.kda = tempkda.toString();
+  //                 console.log("kda ",tempPlayer.kda);
+  //                 tempPlayer.killParticipation = result.data.allPlayers[index].scores.assists;
+  //                 // //one keystone rune
+  //                 // tempPlayer.keystoneRune =
+  //                 //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName
+  //                 //   + "/" + tempPlayer.activePlayerRunes[0] + "/" + tempPlayer.activePlayerRunes[0] + ".png";
+  //                 // /*tempPlayer.keystoneRune =
+  //                 //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png";
+  //                 // */
+  //                 // //3 primary runes
+  //                 // tempPlayer.primaryRuneList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+  //                 // );
+  //                 // tempPlayer.primaryRuneList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+  //                 // );
+  //                 // tempPlayer.primaryRuneList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+  //                 // );
+  //                 // //2 secondary runes
+  //                 // tempPlayer.seconadaryRuneList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Hextech_Flashtraption_rune.png/revision/latest/scale-to-width-down/52?cb=20171004081048"
+  //                 // );
+  //                 // tempPlayer.seconadaryRuneList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/7/75/Bone_Plating_rune.png/revision/latest/scale-to-width-down/52?cb=20180209233224"
+  //                 // );
+  //                 // //3 shards
+  //                 // tempPlayer.shardList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
+  //                 // );
+  //                 // tempPlayer.shardList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
+  //                 // );
+  //                 // tempPlayer.shardList.push(
+  //                 //   "https://static.wikia.nocookie.net/leagueoflegends/images/a/a3/Rune_shard_Adaptive_Force.png/revision/latest/scale-to-width-down/30?cb=20181122101607"
+  //                 // );
+
+  //                 console.log("Found match to query firebase: ",tempPlayer.summonerName ===
+  //                   window.localStorage.getItem("localUsername"));
+
+  //
+  //               }
+  //             })
+  //             .catch((e) => console.log(e)); //for catching errors
 }
 </script>
+
