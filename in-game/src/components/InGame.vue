@@ -328,7 +328,7 @@ export default class Home extends Vue {
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
-
+      let tempPlayer = new Player();
     function setFeatures() {
       //@ts-ignore
       overwolf.games.events.setRequiredFeatures(
@@ -343,8 +343,7 @@ export default class Home extends Vue {
           }
           console.log("Set required features:");
           console.log(JSON.stringify(info));
-          console.log("reached outside await axios");
-          let tempName;
+          self.getRunes();
           await axios
             .get("https://127.0.0.1:2999/liveclientdata/allgamedata")
             .then((result) => {
@@ -368,17 +367,18 @@ export default class Home extends Vue {
                     break;
                   }
                 }
-
                 tempPlayer.summonerName =
                   result.data.allPlayers[index].summonerName;
 
                 //we need to use the riot api
-
-                tempPlayer.level = "118";
+                
+                tempPlayer.level = result.data.allPlayers[index].level;
+                console.log("level found ",tempPlayer.level);
                 tempPlayer.winRate = "41%";
-                tempPlayer.kda = "5.00";
-                tempPlayer.killParticipation = "51%";
-
+                var tempkda = ( result.data.allPlayers[index].scores.kills)/(result.data.allPlayers[index].scores.deaths);
+                tempPlayer.kda = tempkda.toString();
+                console.log("kda ",tempPlayer.kda);
+                tempPlayer.killParticipation = result.data.allPlayers[index].scores.assists;
                 // //one keystone rune
                 // tempPlayer.keystoneRune =
                 //   "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/" + result.data.activePlayer.fullRunes.primaryRuneTree.displayName
@@ -470,15 +470,14 @@ export default class Home extends Vue {
                     }
                   });
                 }
-
                 self.playerList.push(tempPlayer);
               }
             })
             .catch((e) => console.log(e)); //for catching errors
+             
         }
       );
     }
-
     // Start here
     //@ts-ignore
 
@@ -501,5 +500,27 @@ export default class Home extends Vue {
       //   console.log("getRunningGameInfo: " + JSON.stringify(res));
     });
   }
+  async getRunes(){
+    console.log("summonersaved", this.playerList);
+  let summonerURL =  "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
+                    window.localStorage.getItem("localUsername") +
+                    "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";// this gets id,accountid,and puuid
+    //let encryptedAccountID;
+    await axios
+    .get(summonerURL)
+    .then(async(sumInfo) => {
+      //encryptedAccountID = sumInfo.data.accountId;
+    
+    await axios
+   .get("https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" +
+   sumInfo.data.id + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9")
+   .then(async(accInfo) => {
+     console.log("accInfo",accInfo); 
+    for(let num = 0; 8 < num;num++) {
+//tempPlayer.primaryRuneList[num] = accInfo.data.perks.perkIds[num];//using spectatorv-4 api
+    }
+    });
+  });
+}
 }
 </script>
