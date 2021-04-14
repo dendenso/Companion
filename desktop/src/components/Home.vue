@@ -9,7 +9,8 @@
         <img
           alt="Profile Icon"
           class="league_profile"
-          :srcset="profile_icon_id_url"
+          :srcset="profile_icon_id_url"              
+
         />
         <h1>{{ summonerName }}</h1>
         <p>Level: {{ summonerLevel }}</p>

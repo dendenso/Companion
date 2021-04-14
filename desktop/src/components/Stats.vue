@@ -1,6 +1,5 @@
 <template>
   <div class="home-container">
-    
     <div v-if="summonerDataAvailable">
       <!-- Info that is displayed from data pullled from launcher
        img src is being dynamically set-->
@@ -53,53 +52,60 @@
 
         <!-- Item images -->
         <div class="wrap-col">
-          <div v-if="item0exists">
+          <div v-if="itemExists(lastMatch.item0)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item0"
+              :srcset="lastMatch.item0.icon"
+              v-tooltip="'<b>' + lastMatch.item0.name +'</b>' + ':  <br/> ' + lastMatch.item0.desc"
             />
           </div>
-          <div v-if="item1exists">
+          <div v-if="itemExists(lastMatch.item1)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item1"
+              :srcset="lastMatch.item1.icon"
+              v-tooltip="'<b>' + lastMatch.item1.name +'</b>' + ':  <br/> ' + lastMatch.item1.desc"
             />
           </div>
-          <div v-if="item2exists">
+          <div v-if="itemExists(lastMatch.item2)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item2"
+              :srcset="lastMatch.item2.icon"
+              v-tooltip="'<b>' + lastMatch.item2.name +'</b>' + ':  <br/> ' + lastMatch.item2.desc"
             />
           </div>
-          <div v-if="item3exists">
+          <div v-if="itemExists(lastMatch.item3)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item3"
+              :srcset="lastMatch.item3.icon"
+              v-tooltip="'<b>' + lastMatch.item3.name +'</b>' + ':  <br/> ' + lastMatch.item3.desc"
             />
           </div>
-          <div v-if="item4exists">
+          <div v-if="itemExists(lastMatch.item4)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item4"
+              :srcset="lastMatch.item4.icon"
+              v-tooltip="'<b>' + lastMatch.item4.name +'</b>' + ':  <br/> ' + lastMatch.item4.desc"
             />
           </div>
-          <div v-if="item5exists">
+          <div v-if="itemExists(lastMatch.item5)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item5"
+              :srcset="lastMatch.item5.icon"
+              v-tooltip="'<b>' + lastMatch.item5.name +'</b>' + ':  <br/> ' + lastMatch.item5.desc"
             />
           </div>
-          <div v-if="item6exists">
+          <div v-if="itemExists(lastMatch.item6)">
             <img
               alt="Profile Icon"
               class="miniest_league_profile"
-              :srcset="lastMatch.item6"
+              :srcset="lastMatch.item6.icon"
+              v-tooltip="'<b>' + lastMatch.item6.name +'</b>' + ':  <br/> ' + lastMatch.item6.desc"
             />
           </div>
         </div>
@@ -141,12 +147,16 @@
             </div>
           </div>
         </div>
-      </div>
+      </div>      
     </div>
 
     <div v-else>
-      <h1 style="text-align: center; color: white; padding: 20px; font-size 1.5em;">Stats</h1>
-    <hr />
+      <h1
+        style="text-align: center; color: white; padding: 20px; font-size 1.5em;"
+      >
+        Stats
+      </h1>
+      <hr />
       <img
         alt="League Companion"
         class="logo"
@@ -166,7 +176,28 @@ import axios, { AxiosResponse } from "axios";
 import spells from "lol-spells";
 // @ts-ignore
 import champions from "lol-champions";
+import firebase from "firebase/app";
+import "firebase/database";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyBrMp64ttfGC2WiD28JiJXtfUXevFeShCk",
+  authDomain: "test-59db3.firebaseapp.com",
+  databaseURL: "https://test-59db3-default-rtdb.firebaseio.com",
+  projectId: "test-59db3",
+  storageBucket: "test-59db3.appspot.com",
+  messagingSenderId: "890513354906",
+  appId: "1:890513354906:web:ff2483ac34b4f91fb4af23",
+  measurementId: "G-FQST7TCZCR",
+};
+
+firebase.initializeApp(firebaseConfig);
+
+class Item {
+  icon: String;
+  name: string;
+  desc: String;
+  price: String;
+}
 class Champion {
   id: number;
   name: string;
@@ -181,7 +212,7 @@ class Champion {
 
 @Component
 export default class Stats extends Vue {
-  infoAvailable = false;
+  infoAvailable = true;
   summoner_info = null;
   summonerName = "Doublelift";
   profile_icon_id_url =
@@ -214,13 +245,13 @@ export default class Stats extends Vue {
     spell2Icon: "",
 
     //Items used in match
-    item0: "",
-    item1: "",
-    item2: "",
-    item3: "",
-    item4: "",
-    item5: "",
-    item6: "",
+    item0: new Item(),
+    item1: new Item(),
+    item2: new Item(),
+    item3: new Item(),
+    item4: new Item(),
+    item5: new Item(),
+    item6: new Item(),
     //KDA
     kills: 0,
     deaths: 0,
@@ -255,10 +286,9 @@ export default class Stats extends Vue {
 
   //this is for the v-for for champ images
   getChampURL(champ: Champion) {
-    console.log("champ", champ);
+    //console.log("champ", champ);
     return champ.url;
   }
-
   //This page will use the same launcher info as before
   //TODO: #9 Send User info between desktop components from home menu rather than use overwolf launcher API. will speed things up
   //connect to overwolf API to gain user data
@@ -453,7 +483,6 @@ export default class Stats extends Vue {
         .get(matchInfoURL)
         .then(async (matchList) => {
           self.getStatsFromMatchlist(matchList);
-
         })
         .catch((e) => console.log("Error: ", e));
 
@@ -467,19 +496,17 @@ export default class Stats extends Vue {
     //@ts-ignore
     overwolf.windows.getCurrentWindow(function (res) {
       WindowId = res.window.id;
-    let sizeSettings = {
-        "window_id": WindowId,
-        "width":500,
-        "height":600,
-        "auto_dpi_resize":true //relevant only for native windows
+      let sizeSettings = {
+        window_id: WindowId,
+        width: 500,
+        height: 600,
+        auto_dpi_resize: true, //relevant only for native windows
       };
       //@ts-ignore
-      overwolf.windows.changeSize(sizeSettings ,console.log);
+      overwolf.windows.changeSize(sizeSettings, console.log);
     });
-
   }
-  
-  
+
   async getStatsFromMatchlist(matchList: AxiosResponse<any>) {
     let self = this;
 
@@ -507,7 +534,7 @@ export default class Stats extends Vue {
       } else {
         if (!roleCount.includes(matchList.data.matches[imatch].role)) {
           roleCount.push(matchList.data.matches[imatch].role);
-          console.log("adding new  role", matchList.data.matches[imatch].role);
+          //console.log("adding new  role", matchList.data.matches[imatch].role);
         }
       }
 
@@ -521,10 +548,10 @@ export default class Stats extends Vue {
       } else {
         if (!queueCount.includes(matchList.data.matches[imatch].queue)) {
           queueCount.push(matchList.data.matches[imatch].queue);
-          console.log(
-            "adding new  queue",
-            matchList.data.matches[imatch].queue
-          );
+          // console.log(
+          //   "adding new  queue",
+          //   matchList.data.matches[imatch].queue
+          // );
         }
       }
 
@@ -534,14 +561,14 @@ export default class Stats extends Vue {
       } else {
         if (!champIDs.includes(matchList.data.matches[imatch].champion)) {
           champIDs.push(matchList.data.matches[imatch].champion);
-          console.log(
-            "adding new  champion",
-            matchList.data.matches[imatch].champion
-          );
+          // console.log(
+          //   "adding new  champion",
+          //   matchList.data.matches[imatch].champion
+          // );
         }
       }
 
-      console.log("Axios for match: ", imatch);
+      // console.log("Axios for match: ", imatch);
       //call API for each match
       await axios
         .get(
@@ -580,13 +607,13 @@ export default class Stats extends Vue {
             ) {
               if (mostRecentMatch.data.participants[i].stats.win === true) {
                 self.stats.wins = self.stats.wins + 1;
-                console.log("Self.stats.wins++", self.stats.wins);
+                //console.log("Self.stats.wins++", self.stats.wins);
                 if (imatch === 0) {
                   self.lastMatch.win = "Victory";
                 }
               } else {
                 self.stats.losses = self.stats.losses + 1;
-                console.log("Self.stats.losses++", self.stats.losses);
+                // console.log("Self.stats.losses++", self.stats.losses);
 
                 if (imatch === 0) {
                   self.lastMatch.win = "Defeat";
@@ -596,44 +623,41 @@ export default class Stats extends Vue {
               if (imatch === 0) {
                 self.lastMatch.championId =
                   mostRecentMatch.data.participants[i].championId;
-                //need to add it/ instatiate array
-              } else {
-                //add champions to champion array to display
               }
 
               //if match index === 0 store item info from most recent match
               if (imatch === 0) {
+                console.log("We are in the first match");
                 //item info
                 //base item url http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/{{ItemNumber}}.png
-                self.lastMatch.item0 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item0 +
-                  ".png";
-
-                self.lastMatch.item1 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item1 +
-                  ".png";
-                self.lastMatch.item2 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item2 +
-                  ".png";
-                self.lastMatch.item3 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item3 +
-                  ".png";
-                self.lastMatch.item4 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item4 +
-                  ".png";
-                self.lastMatch.item5 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item5 +
-                  ".png";
-                self.lastMatch.item6 =
-                  "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/" +
-                  mostRecentMatch.data.participants[i].stats.item6 +
-                  ".png";
+                self.setItem(
+                  (self.lastMatch.item0 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item0
+                );
+                self.setItem(
+                  (self.lastMatch.item1 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item1
+                );
+                self.setItem(
+                  (self.lastMatch.item2 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item2
+                );
+                self.setItem(
+                  (self.lastMatch.item3 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item3
+                );
+                self.setItem(
+                  (self.lastMatch.item4 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item4
+                );
+                self.setItem(
+                  (self.lastMatch.item5 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item5
+                );
+                self.setItem(
+                  (self.lastMatch.item6 as unknown) as Item,
+                  mostRecentMatch.data.participants[i].stats.item6
+                );
               }
 
               //KDA
@@ -743,7 +767,6 @@ export default class Stats extends Vue {
     }
 
     champIDs.forEach((id) => {
-      console.log(id);
       for (let i = 0; i < champions.length; i++) {
         //if id and key matches then initialize data and end loop
 
@@ -768,53 +791,32 @@ export default class Stats extends Vue {
       ((self.stats.wins / matchNums) * 100).toFixed(0) + "%";
   }
 
-  
+  setItem(thisItem: Item, arrayItem: any) {
+    //call to firebase to get item info
+    var checkdatabase = firebase.database().ref("items/" + String(arrayItem));
+    checkdatabase.on("value", (snapshot) => {
+      if (snapshot.val() != null) {
+        //check if keystone rune
+        thisItem.icon = snapshot.val().icon;
+        thisItem.name = snapshot.val().name;
+        thisItem.desc = snapshot.val().description;
+      } else {
+        thisItem.icon = null;
+      }
+    });
+
+    //if item was never found then initilaize to null
+  }
 
   // Check if the items exist before rendering them
-  get item0exists() {
-    return (
-      this.lastMatch.item0 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-  }
-  get item1exists() {
-    return (
-      this.lastMatch.item1 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-  }
-  get item2exists() {
-    return (
-      this.lastMatch.item2 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-  }
-  get item3exists() {
-    return (
-      this.lastMatch.item3 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-  }
-  get item4exists() {
-    return (
-      this.lastMatch.item4 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-  }
-  get item5exists() {
-    return (
-      this.lastMatch.item5 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-  }
-  get item6exists() {
-    return (
-      this.lastMatch.item6 !=
-      "http://ddragon.leagueoflegends.com/cdn/11.2.1/img/item/0.png"
-    );
-   }
-  }
-  
 
-
+  itemExists(item: Item) {
+    console.log("Checking the item: ", item);
+    if (item.icon == null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+}
 </script>
