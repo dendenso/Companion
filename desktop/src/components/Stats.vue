@@ -22,20 +22,26 @@
         <div class="last-game-col1">
           <div class="row">
             <img
-              alt="Profile Icon"
+              alt="Champion Icon"
               class="minier_league_profile"
               :srcset="lastMatch.champArtURL"
             />
             <div class="col">
               <img
-                alt="Profile Icon"
+                alt="Spell 1"
                 class="miniest_league_profile"
                 :srcset="lastMatch.spell1Icon"
+                v-tooltip="
+                  lastMatch.spell1Name + ' <br/> ' + lastMatch.spell1Description
+                "
               />
               <img
-                alt="Profile Icon"
+                alt="Spell 2"
                 class="miniest_league_profile"
                 :srcset="lastMatch.spell2Icon"
+                v-tooltip="
+                  lastMatch.spell2Name + ' <br/> ' + lastMatch.spell2Description
+                "
               />
             </div>
           </div>
@@ -54,58 +60,100 @@
         <div class="wrap-col">
           <div v-if="itemExists(lastMatch.item0)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item0.icon"
-              v-tooltip="'<b>' + lastMatch.item0.name +'</b>' + ':  <br/> ' + lastMatch.item0.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item0.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item0.desc
+              "
             />
           </div>
           <div v-if="itemExists(lastMatch.item1)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item1.icon"
-              v-tooltip="'<b>' + lastMatch.item1.name +'</b>' + ':  <br/> ' + lastMatch.item1.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item1.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item1.desc
+              "
             />
           </div>
           <div v-if="itemExists(lastMatch.item2)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item2.icon"
-              v-tooltip="'<b>' + lastMatch.item2.name +'</b>' + ':  <br/> ' + lastMatch.item2.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item2.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item2.desc
+              "
             />
           </div>
           <div v-if="itemExists(lastMatch.item3)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item3.icon"
-              v-tooltip="'<b>' + lastMatch.item3.name +'</b>' + ':  <br/> ' + lastMatch.item3.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item3.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item3.desc
+              "
             />
           </div>
           <div v-if="itemExists(lastMatch.item4)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item4.icon"
-              v-tooltip="'<b>' + lastMatch.item4.name +'</b>' + ':  <br/> ' + lastMatch.item4.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item4.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item4.desc
+              "
             />
           </div>
           <div v-if="itemExists(lastMatch.item5)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item5.icon"
-              v-tooltip="'<b>' + lastMatch.item5.name +'</b>' + ':  <br/> ' + lastMatch.item5.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item5.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item5.desc
+              "
             />
           </div>
           <div v-if="itemExists(lastMatch.item6)">
             <img
-              alt="Profile Icon"
+              alt="Item"
               class="miniest_league_profile"
               :srcset="lastMatch.item6.icon"
-              v-tooltip="'<b>' + lastMatch.item6.name +'</b>' + ':  <br/> ' + lastMatch.item6.desc"
+              v-tooltip="
+                '<b>' +
+                lastMatch.item6.name +
+                '</b>' +
+                ':  <br/> ' +
+                lastMatch.item6.desc
+              "
             />
           </div>
         </div>
@@ -121,7 +169,7 @@
         <div class="grid-container">
           <div class="grid-item">{{ stats.wins }} Wins</div>
           <div class="grid-item">{{ stats.losses }} Losses</div>
-          <div class="grid-item">{{ stats.win_Rate }}Win Rate</div>
+          <div class="grid-item">{{ stats.win_Rate }} Win Rate</div>
           <div class="grid-item">{{ stats.avg_Kills }} AVG Kills</div>
           <div class="grid-item">{{ stats.avg_Death }} Avg Death</div>
           <div class="grid-item">{{ stats.avg_assists }} Avg assists</div>
@@ -147,7 +195,7 @@
             </div>
           </div>
         </div>
-      </div>      
+      </div>
     </div>
 
     <div v-else>
@@ -229,20 +277,24 @@ export default class Stats extends Vue {
     //ARAM & Normals
     gameMode: "ARAM",
     //game started & duration
-    gameCreation: new Date(1611790864204).toLocaleDateString(),
-    gameDuration: new Date(820543543).toTimeString(),
+    gameCreation: "",
+    gameDuration: "",
     //win or lose
     win: "Win",
     //Champion Used
     championId: 0,
     championName: "",
     champArtURL: "",
+
     //Starter spells like Flash or Heal
     //these are img urls, but i can look for the names if we need them
-    spell1Id: "",
+    spell1Name: "",
     spell1Icon: "",
-    spell2Id: "",
+    spell1Description: "",
+
+    spell2Name: "",
     spell2Icon: "",
+    spell2Description: "",
 
     //Items used in match
     item0: new Item(),
@@ -588,8 +640,9 @@ export default class Stats extends Vue {
 
             self.lastMatch.gameCreation =
               date.getMonth() +
+              1 +
               " / " +
-              date.getDay() +
+              date.getUTCDate() +
               " / " +
               date.getFullYear();
             self.lastMatch.gameDuration =
@@ -727,18 +780,21 @@ export default class Stats extends Vue {
                 // Find the spells by spell id - using the lol spells package for this.
                 // spell info
                 // http://ddragon.leagueoflegends.com/cdn/11.2.1/img/spell/{{spellname}}.png
-                self.lastMatch.spell1Id =
-                  mostRecentMatch.data.participants[i].spell1Id;
-                self.lastMatch.spell2Id =
-                  mostRecentMatch.data.participants[i].spell2Id;
-
+                let spell1Id = mostRecentMatch.data.participants[i].spell1Id;
+                let spell2Id = mostRecentMatch.data.participants[i].spell2Id;
                 for (let i = 0; i < spells.length; i++) {
                   //check for spell 1
-                  if (spells[i].key === String(self.lastMatch.spell1Id)) {
+                  console.log("comparing api id:", spell2Id);
+                  console.log("To spells key: ", spells[i].key);
+                  if (spells[i].key == String(spell1Id)) {
                     self.lastMatch.spell1Icon = spells[i].icon;
+                    self.lastMatch.spell1Name = spells[i].name;
+                    self.lastMatch.spell1Description = spells[i].description;
                   } //check for spell 2
-                  else if (spells[i].key === String(self.lastMatch.spell2Id)) {
+                  else if (spells[i].key == String(spell2Id)) {
                     self.lastMatch.spell2Icon = spells[i].icon;
+                    self.lastMatch.spell2Name = spells[i].name;
+                    self.lastMatch.spell2Description = spells[i].description;
                   }
                 }
               }
@@ -811,7 +867,6 @@ export default class Stats extends Vue {
   // Check if the items exist before rendering them
 
   itemExists(item: Item) {
-    console.log("Checking the item: ", item);
     if (item.icon == null) {
       return false;
     } else {
