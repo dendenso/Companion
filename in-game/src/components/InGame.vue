@@ -429,9 +429,70 @@ export default class Home extends Vue {
 
             //make api call for this participants stats
             //call riot api on summoner name
-            //fill in participant.level
-            //call matchlist api for list of matches
-            //call each match and build stats for player
+            let summonerInfoURL = "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/"
+            + accInfo.data.participants[num].summonerName + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+            axios.get(summonerInfoURL).then(summoner => {
+              //fill in participant.level
+              participant.level = summoner.data.level;
+              //call matchlist api for list of matches
+              //call each match and build stats for player
+              axios.get("https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account" + summoner.data.encryptedID + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9").then(
+                matchList => {
+                  var matchNums = 15;
+                  if (matchList.data.totalGames < 15)
+                  {
+                    matchNums = matchList.data.totalGames;
+                  }
+                  var killCount = 0;
+                  var deathCount = 0;
+                  var assistCount = 0;
+                  var winCount = 0;
+                  var totalKills = 0;
+                  var teamID = 0;
+                  for (let index = 0; index < matchNums; index++)
+                  {
+                    axios.get("https://na1.api.riotgames.com/lol/match/v4/matches" + matchList.data.matches[index].gameId + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9").then(
+                      async (mostRecentMatch) => {
+                        console.log(mostRecentMatch.data);
+                        // first for loop to get teamId
+                        for (let i = 0; i < 10; i++)
+                        {
+                          if (participant.summonerName === mostRecentMatch.data.participantIdentities[i].player.summonerName)
+                          {
+                            teamID = mostRecentMatch.data.participants[i].teamId;
+                            break;
+                          }
+                        }
+                        // second loop for rest of data
+                        for (let i = 0; i < 10; i++)
+                        {
+                          if (mostRecentMatch.data.participants[i].teamId == teamID)
+                          {
+                            totalKills += mostRecentMatch.data.participants[i].stats.kills;
+                          }
+                          if (participant.summonerName === mostRecentMatch.data.participantIdentities[i].player.summonerName)
+                          {
+                            if (mostRecentMatch.data.participants[i].stats.win === true)
+                            {
+                              winCount++;
+                            }
+                            killCount += mostRecentMatch.data.participants[i].stats.kills;
+                            deathCount += mostRecentMatch.data.participants[i].stats.deaths;
+                            assistCount += mostRecentMatch.data.participants[i].stats.assists;
+                          }
+                        }
+                      }
+                    )
+                  }
+                  // Kill Participation
+                  participant.killParticipation = ((killCount + assistCount)/totalKills).toFixed(2);
+                  // Win Rate
+                  participant.winRate = ((winCount/10) * .100).toFixed(0) + "%";
+                  // KDA
+                  participant.kda = ((killCount + assistCount)/deathCount).toFixed(2);
+                }
+              )
+            })
 
             //get champion image using lol-champions
             for (let i = 0; i < champions.length; i++) {
