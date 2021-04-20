@@ -186,7 +186,7 @@ export default class App extends Vue {
         enable: true,
       },
       quota: {
-        max_quota_gb: 1,
+        max_quota_gb: 5,
         excluded_directories: ["cool_session"], //set directories that are not part of the quota
       },
     };

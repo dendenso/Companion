@@ -1,9 +1,8 @@
 <template>
   <div>
-    <h1 style="text-align: center; color: white; padding: 20px">Highlights</h1>
+    <h1 style="text-align: center; color: white; padding: 20px; height:10%">Highlights</h1>
     <hr />
-    <div class="highlights-container">
-      <div class="yes-highlights" v-if="true">
+    <div class="highlights-container" v-if="highlightsAvailable">
         <div class="highlights-list">
           <!-- for loop to go through video folders -->
           <div v-for="folder in videoList" :key="folder.date">
@@ -24,8 +23,7 @@
                 <h3 class="result">{{ folder.gameResult }}</h3>
               </div>
               <!-- for loop to go through videos in the folder -->
-              <div v-for="video in folder.videoList" :key="video.videoAddress">
-                <div class="video-button" @click="setVideo(video.videoAddress)">
+              <div v-for="video in folder.videoList" :key="video.videoAddress" class="video-button"  @click="setVideo(video.videoAddress)">
                   <img
                     class="video-thumbnail"
                     :src="video.thumbnail_url"
@@ -38,7 +36,6 @@
                     {{ video.videoStartTime }}<br />
                     {{ video.duration }}<br />
                   </div>
-                </div>
               </div>
             </div>
           </div>
@@ -47,6 +44,7 @@
         <div class="video-side">
           <!-- used :src to dynamically set video -->
           <video
+            class="video-player"
             height="480px"
             width="720px"
             :src="current_Video"
@@ -74,8 +72,8 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="no-highlights" v-else>
+    </div>
+    <div class="no-highlights" v-else>
         <h2>No Highlights Found</h2>
         <img
           src="https://img.icons8.com/bubbles/500/000000/google-web-search.png"
@@ -85,7 +83,6 @@
 
         <h2>Try Playing Some Games</h2>
       </div>
-    </div>
   </div>
 </template>
 
