@@ -418,29 +418,39 @@ export default class Home extends Vue {
                     //add to keystone since it's not an array
                     participant.keystoneRune = snapshot.val().img;
                   } else if (i < 4) {
-                      participant.primaryRuneList.push(snapshot.val().img)
+                    participant.primaryRuneList.push(snapshot.val().img);
                   } else if (i < 6) {
-                      participant.seconadaryRuneList.push(snapshot.val().img)
+                    participant.seconadaryRuneList.push(snapshot.val().img);
                   } else {
-                     participant.shardList.push(snapshot.val().img)                  }
+                    participant.shardList.push(snapshot.val().img);
+                  }
                 }
               });
             }
 
             //make api call for this participants stats
             //call riot api on summoner name
-            let summonerInfoURL = "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/"
-            + accInfo.data.participants[num].summonerName + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
-            axios.get(summonerInfoURL).then(summoner => {
+            let summonerInfoURL =
+              "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
+              accInfo.data.participants[num].summonerName +
+              "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9";
+            await axios.get(summonerInfoURL).then(async (summoner) => {
               //fill in participant.level
-              participant.level = summoner.data.level;
+              participant.level = summoner.data.summonerLevel;
+
+              console.log("summoner lvl :>> ", summoner.data);
               //call matchlist api for list of matches
               //call each match and build stats for player
-              axios.get("https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account" + summoner.data.encryptedID + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9").then(
-                matchList => {
-                  var matchNums = 15;
-                  if (matchList.data.totalGames < 15)
-                  {
+              await axios
+                .get(
+                  "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
+                    summoner.data.accountId +
+                    "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
+                )
+                .then(async (matchList) => {
+                  console.log("matchList :>> ", matchList);
+                  var matchNums = 2;
+                  if (matchList.data.totalGames < matchNums) {
                     matchNums = matchList.data.totalGames;
                   }
                   var killCount = 0;
@@ -449,55 +459,92 @@ export default class Home extends Vue {
                   var winCount = 0;
                   var totalKills = 0;
                   var teamID = 0;
-                  for (let index = 0; index < matchNums; index++)
-                  {
-                    axios.get("https://na1.api.riotgames.com/lol/match/v4/matches" + matchList.data.matches[index].gameId + "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9").then(
-                      async (mostRecentMatch) => {
-                        console.log(mostRecentMatch.data);
+                  let participantIndex = -1;
+                  for (let index = 0; index < matchNums; index++) {
+                   await axios
+                      .get(
+                        "https://na1.api.riotgames.com/lol/match/v4/matches/" +
+                          matchList.data.matches[index].gameId +
+                          "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
+                      )
+                      .then( (mostRecentMatch) => {
+                        console.log(
+                          "mostRecentMatch.data >> ",
+                          mostRecentMatch.data
+                        );
                         // first for loop to get teamId
-                        for (let i = 0; i < 10; i++)
-                        {
-                          if (participant.summonerName === mostRecentMatch.data.participantIdentities[i].player.summonerName)
-                          {
-                            teamID = mostRecentMatch.data.participants[i].teamId;
+                        //and participantId
+                        for (let i = 0; i < 10; i++) {
+                          if (
+                            participant.summonerName ===
+                            mostRecentMatch.data.participantIdentities[i].player
+                              .summonerName
+                          ) {
+                            teamID =
+                              mostRecentMatch.data.participants[i].teamId;
+                            participantIndex = i;
                             break;
                           }
                         }
+
+                        if (
+                          mostRecentMatch.data.participants[participantIndex]
+                            .stats.win === true
+                        ) {
+                          winCount++;
+                        }
+
+                        killCount +=
+                          mostRecentMatch.data.participants[participantIndex]
+                            .stats.kills;
+                        deathCount +=
+                          mostRecentMatch.data.participants[participantIndex]
+                            .stats.deaths;
+                        assistCount +=
+                          mostRecentMatch.data.participants[participantIndex]
+                            .stats.assists;
+
                         // second loop for rest of data
-                        for (let i = 0; i < 10; i++)
-                        {
-                          if (mostRecentMatch.data.participants[i].teamId == teamID)
-                          {
-                            totalKills += mostRecentMatch.data.participants[i].stats.kills;
-                          }
-                          if (participant.summonerName === mostRecentMatch.data.participantIdentities[i].player.summonerName)
-                          {
-                            if (mostRecentMatch.data.participants[i].stats.win === true)
-                            {
-                              winCount++;
-                            }
-                            killCount += mostRecentMatch.data.participants[i].stats.kills;
-                            deathCount += mostRecentMatch.data.participants[i].stats.deaths;
-                            assistCount += mostRecentMatch.data.participants[i].stats.assists;
+                        for (let i = 0; i < 10; i++) {
+                          if (
+                            mostRecentMatch.data.participants[i].teamId ==
+                            teamID
+                          ) {
+                            totalKills +=
+                              mostRecentMatch.data.participants[i].stats.kills;
                           }
                         }
-                      }
-                    )
+                      });
                   }
+                  console.log("killCount :>> ", killCount);
+                  console.log('assistCount :>> ', assistCount);
+                  console.log('deathCount :>> ', deathCount);
+                  console.log('winCount :>> ', winCount);
                   // Kill Participation
-                  participant.killParticipation = ((killCount + assistCount)/totalKills).toFixed(2);
+
+                  participant.killParticipation = ((killCount+assistCount/totalKills).toFixed(0)  +"%");
                   // Win Rate
-                  participant.winRate = ((winCount/10) * .100).toFixed(0) + "%";
+                  console.log('participant.killParticipation :>> ', participant.killParticipation);
+
+                  participant.winRate = 
+                    ((winCount / matchNums * 100) + "%");
+                                      console.log('participant.winRate :>> ', participant.winRate);
+
                   // KDA
-                  participant.kda = ((killCount + assistCount)/deathCount).toFixed(2);
-                }
-              )
-            })
+                  participant.kda = String((
+                    (killCount + assistCount) /
+                    deathCount
+                  ).toFixed(0)) + " / 1";
+                  console.log('participant.kda :>> ', participant.kda);
+                  
+                });
+            });
 
             //get champion image using lol-champions
             for (let i = 0; i < champions.length; i++) {
               if (
-                champions[i].key === String(accInfo.data.participants[num].championId)
+                champions[i].key ===
+                String(accInfo.data.participants[num].championId)
               ) {
                 participant.champion = champions.name;
                 participant.champImgURL = champions[i].icon;
@@ -507,7 +554,7 @@ export default class Home extends Vue {
             }
 
             //if participant is current user
-            //then add the champ 
+            //then add the champ
             if (
               participant.summonerName ===
               window.localStorage.getItem("localUsername")
@@ -524,12 +571,15 @@ export default class Home extends Vue {
                     participant.champIdForFirebase.slice(1)
                 );
               checkdatabase.on("value", (snapshot) => {
-                console.log("returned from firebase when calling for champion info", snapshot.val());
+                console.log(
+                  "returned from firebase when calling for champion info",
+                  snapshot.val()
+                );
                 //pull some champ info
                 if (snapshot.val() != null) {
                   self.championInfo.blurb = snapshot.val().blurb;
                   self.championInfo.url = snapshot.val().url;
-                  self.championInfo.champion = participant.champion;
+                  self.championInfo.champion = snapshot.val().name;
                   //get skill order
                   //notice the difference in notation to access skill vs build list
                   //it's cause skill list had a space in it when it was being entered
