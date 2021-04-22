@@ -21,18 +21,24 @@
             <div class="horizontal">
               <img
                 class="champion-splash"
-                :srcset="player.keystoneRune"
+                :srcset="player.keystoneRune.img"
                 alt="keystone"
                 height="40"
                 width="40"
+                v-tooltip="
+                  player.keystoneRune.name +
+                  ' <br/> ' +
+                  player.keystoneRune.desc
+                "
               />
               <div v-for="runes in player.primaryRuneList" :key="runes">
                 <img
                   class="champion-splash"
-                  :srcset="runes"
+                  :srcset="runes.img"
                   alt="champion splash art"
                   height="40"
                   width="40"
+                  v-tooltip="runes.name + ' <br/> ' + runes.desc"
                 />
               </div>
             </div>
@@ -40,19 +46,23 @@
               <div v-for="runes in player.seconadaryRuneList" :key="runes">
                 <img
                   class="champion-splash"
-                  :srcset="runes"
+                  :srcset="runes.img"
                   alt="champion splash art"
                   height="40"
                   width="40"
+                                    v-tooltip="runes.name + ' <br/> ' + runes.desc"
+
                 />
               </div>
               <div v-for="shards in player.shardList" :key="shards">
                 <img
                   class="champion-splash"
-                  :srcset="shards"
+                  :srcset="shards.img"
                   alt="champion splash art"
                   height="40"
                   width="40"
+                                    v-tooltip="shards.name + ' <br/> ' + shards.desc"
+
                 />
               </div>
             </div>
@@ -166,6 +176,12 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+class Rune {
+  name: string;
+  desc: string;
+  img: string;
+}
+
 //class to hold build items
 class Item {
   name: string;
@@ -187,12 +203,12 @@ class Player {
   public winRate: string;
   public kda: string;
 
-  public primaryRuneList: Array<string> = [];
-  public seconadaryRuneList: Array<string> = [];
-  public shardList: Array<string> = [];
-  public activePlayerRunes: Array<string> = [];
+  public primaryRuneList: Array<Rune> = [];
+  public seconadaryRuneList: Array<Rune> = [];
+  public shardList: Array<Rune> = [];
+  public activePlayerRunes: Array<Rune> = [];
 
-  public keystoneRune: string;
+  public keystoneRune: Rune;
   champIdForFirebase: any;
 }
 
@@ -413,16 +429,25 @@ export default class Home extends Vue {
               checkdatabase.on("value", (snapshot) => {
                 console.log("returned from firebase for Rune", snapshot.val());
                 if (snapshot.val() != null) {
+                  let rune = new Rune();
+
+                  rune.name = snapshot.val().name;
+                  rune.desc = snapshot.val().desc;
+                  rune.img = snapshot.val().img;
+                  
+                  console.log('rune.name :>> ', rune.name);
+                  console.log('rune.desc :>> ', rune.desc);
+                  console.log('rune.img :>> ', rune.img);
                   //check if keystone rune
                   if (i == 0) {
                     //add to keystone since it's not an array
-                    participant.keystoneRune = snapshot.val().img;
+                    participant.keystoneRune = rune;
                   } else if (i < 4) {
-                    participant.primaryRuneList.push(snapshot.val().img);
+                    participant.primaryRuneList.push(rune);
                   } else if (i < 6) {
-                    participant.seconadaryRuneList.push(snapshot.val().img);
+                    participant.seconadaryRuneList.push(rune);
                   } else {
-                    participant.shardList.push(snapshot.val().img);
+                    participant.shardList.push(rune);
                   }
                 }
               });
@@ -449,7 +474,7 @@ export default class Home extends Vue {
                 )
                 .then(async (matchList) => {
                   console.log("matchList :>> ", matchList);
-                  var matchNums = 2;
+                  var matchNums = 1;
                   if (matchList.data.totalGames < matchNums) {
                     matchNums = matchList.data.totalGames;
                   }
@@ -461,13 +486,13 @@ export default class Home extends Vue {
                   var teamID = 0;
                   let participantIndex = -1;
                   for (let index = 0; index < matchNums; index++) {
-                   await axios
+                    await axios
                       .get(
                         "https://na1.api.riotgames.com/lol/match/v4/matches/" +
                           matchList.data.matches[index].gameId +
                           "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9"
                       )
-                      .then( (mostRecentMatch) => {
+                      .then((mostRecentMatch) => {
                         console.log(
                           "mostRecentMatch.data >> ",
                           mostRecentMatch.data
@@ -517,26 +542,28 @@ export default class Home extends Vue {
                       });
                   }
                   console.log("killCount :>> ", killCount);
-                  console.log('assistCount :>> ', assistCount);
-                  console.log('deathCount :>> ', deathCount);
-                  console.log('winCount :>> ', winCount);
+                  console.log("assistCount :>> ", assistCount);
+                  console.log("deathCount :>> ", deathCount);
+                  console.log("winCount :>> ", winCount);
                   // Kill Participation
 
-                  participant.killParticipation = ((killCount+assistCount/totalKills).toFixed(0)  +"%");
+                  participant.killParticipation =
+                    (killCount + assistCount / totalKills).toFixed(0) + "%";
                   // Win Rate
-                  console.log('participant.killParticipation :>> ', participant.killParticipation);
+                  console.log(
+                    "participant.killParticipation :>> ",
+                    participant.killParticipation
+                  );
 
-                  participant.winRate = 
-                    ((winCount / matchNums * 100) + "%");
-                                      console.log('participant.winRate :>> ', participant.winRate);
+                  participant.winRate = (winCount / matchNums) * 100 + "%";
+                  console.log("participant.winRate :>> ", participant.winRate);
 
                   // KDA
-                  participant.kda = String((
-                    (killCount + assistCount) /
-                    deathCount
-                  ).toFixed(0)) + " / 1";
-                  console.log('participant.kda :>> ', participant.kda);
-                  
+                  participant.kda =
+                    String(
+                      ((killCount + assistCount) / deathCount).toFixed(0)
+                    ) + " / 1";
+                  console.log("participant.kda :>> ", participant.kda);
                 });
             });
 
