@@ -1,6 +1,6 @@
 <template>
   <div class="home-container">
-    <h1 class="project-name">League Companion</h1>
+    <h1 class="project-name">Summoner Support</h1>
     <hr />
     <div v-if="summonerDataAvailable">
       <!-- Info that is displayed from data pullled from launcher
