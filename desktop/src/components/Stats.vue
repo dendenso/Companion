@@ -436,10 +436,7 @@ export default class Stats extends Vue {
                     "localUsername",
                     self.summonerName
                   );
-                  window.localStorage.setItem(
-                    "encryptedAccountID",
-                    self.summoner_info.account_id
-                  );
+            
 
                   let summonerInfoURL =
                     "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" +
@@ -460,6 +457,8 @@ export default class Stats extends Vue {
                       console.log("Summoner API CALL RESPONCE: ", summonerInfo);
 
                       self.encypted_summoner_id = summonerInfo.data.id;
+                      window.localStorage.setItem('encryptedAccountID', summonerInfo.data.accountId);
+
                       self.encypted_account_id = summonerInfo.data.accountId;
                       //MATCHLIST
                       //use axios to get a matchlist from RIOT API
@@ -526,6 +525,9 @@ export default class Stats extends Vue {
       });
     } else {
       //we already have the accountId saved So we don't need to set listeners
+      console.log("Match info url:", "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
+        window.localStorage.getItem("encryptedAccountID") +
+        "?api_key=RGAPI-c267e3e8-87cd-44fe-89ab-afa8f8fd1dc9");
       let matchInfoURL =
         "https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" +
         window.localStorage.getItem("encryptedAccountID") +

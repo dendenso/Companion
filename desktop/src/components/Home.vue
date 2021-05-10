@@ -142,9 +142,7 @@ export default class Home extends Vue {
                   self.summoner_info = info.res.summoner_info;
                   self.summonerName = self.summoner_info.display_name;
                   window.sessionStorage.setItem("sessionUsername", self.summonerName);
-                  //save account id for use in stats page
-                  window.localStorage.setItem('encryptedAccountID', self.summoner_info.account_id);
-                  
+                                    
                   //set summoner name in localstorage
                   window.localStorage.setItem(
                     "localUsername",
