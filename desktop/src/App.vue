@@ -109,9 +109,10 @@ export default class App extends Vue {
     
       this._backgroundWindow.close();
     });
+    
     // Minimize app on minimize click
     this._minimizeButton.addEventListener("click", () => {
-      this._backgroundWindow.minimize();
+      this.currWindow.minimize();
       this._hideExitMinimizeModal();
     });
     // When the user clicks anywhere outside of the modal, close it
