@@ -260,7 +260,7 @@ class Champion {
 
 @Component
 export default class Stats extends Vue {
-  infoAvailable = true;
+  infoAvailable = false;
   summoner_info = null;
   summonerName = "Doublelift";
   profile_icon_id_url =
